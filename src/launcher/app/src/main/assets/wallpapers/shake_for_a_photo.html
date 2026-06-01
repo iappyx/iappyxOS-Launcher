@@ -1,0 +1,211 @@
+<!-- Built with iappyxOS Launcher -->
+<!doctype html>
+<html>
+<head><title>Shake for a Photo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0a;}
+  #stage{position:fixed;inset:0;width:100vw;height:100vh;}
+  .layer{
+    position:absolute;inset:0;width:100%;height:100%;
+    background-size:cover;background-position:center center;
+    background-repeat:no-repeat;
+    transition:none;
+  }
+  #ripple{
+    position:fixed;inset:0;width:100%;height:100%;
+    pointer-events:none;z-index:10;
+    background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%);
+    opacity:0;
+  }
+  #hint{
+    position:fixed;bottom:48px;left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(12px) saturate(1.4);
+    -webkit-backdrop-filter:blur(12px) saturate(1.4);
+    border:1px solid rgba(255,255,255,0.28);
+    border-radius:999px;
+    padding:10px 22px;
+    color:rgba(255,255,255,0.92);
+    font-family:system-ui,-apple-system,sans-serif;
+    font-size:14px;
+    letter-spacing:0.3px;
+    white-space:nowrap;
+    z-index:20;
+    opacity:1;
+    text-shadow:0 1px 4px rgba(0,0,0,0.4);
+    box-shadow:0 4px 24px rgba(0,0,0,0.25);
+    transition:opacity 1.2s ease;
+  }
+  #hint.hidden{opacity:0;}
+  #loader{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    z-index:5;pointer-events:none;opacity:0;transition:opacity 0.3s ease;
+  }
+  #loader.active{opacity:1;}
+  .spinner{
+    width:36px;height:36px;border-radius:50%;
+    border:3px solid rgba(255,255,255,0.15);
+    border-top-color:rgba(255,255,255,0.7);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="layerA"></div>
+  <div class="layer" id="layerB" style="opacity:0;"></div>
+</div>
+<div id="ripple"></div>
+<div id="loader"><div class="spinner"></div></div>
+<div id="hint">Shake for new photo 📸</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const layerA   = document.getElementById('layerA');
+  const layerB   = document.getElementById('layerB');
+  const rippleEl = document.getElementById('ripple');
+  const hintEl   = document.getElementById('hint');
+  const loaderEl = document.getElementById('loader');
+
+  let visible      = true;
+  let isLoading    = false;
+  let shakeBlocked = false;
+  let frontIsA     = true;
+  let hintTimer    = null;
+
+  // ── Accelerometer shake detection ──────────────────────────────────────
+  const SHAKE_THRESHOLD = 25;   // m/s²
+  const SHAKE_COOLDOWN  = 1400; // ms
+
+  let ax = 0, ay = 0, az = 0;
+
+  if (window.iappyx) {
+    iappyx.enableAccelerometer(true);
+    iappyx.onAccelerometer = (x, y, z) => {
+      ax = ax * 0.6 + x * 0.4;
+      ay = ay * 0.6 + y * 0.4;
+      az = az * 0.6 + z * 0.4;
+      const mag = Math.sqrt(x * x + y * y + z * z);
+      if (mag > SHAKE_THRESHOLD && !shakeBlocked && !isLoading && visible) {
+        shakeBlocked = true;
+        setTimeout(() => { shakeBlocked = false; }, SHAKE_COOLDOWN);
+        handleShake();
+      }
+    };
+    iappyx.onVisibility = v => { visible = !!v; };
+  }
+
+  // ── Photo loading ───────────────────────────────────────────────────────
+  // discontinued in 2024 — every request 404'd. Lorem Picsum is the modern
+  // free alternative: no API key, supports a seed param so each shake gets a
+  // fresh photo. The image loads via a regular <img>/background-image; no
+  // bridge round-trip needed (the iappyxHttpClient warm-up was pointless).
+  const FADE_DURATION = 800; // ms
+
+  function buildUrl() {
+    return `https://picsum.photos/seed/${Date.now()}-${Math.floor(Math.random()*99999)}/1080/1920`;
+  }
+
+  function loadPhoto(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload  = () => resolve(url);
+      img.onerror = () => reject(new Error('img load failed'));
+      img.src = url;
+    });
+  }
+
+  async function fetchAndShow() {
+    if (isLoading) return;
+    isLoading = true;
+    loaderEl.classList.add('active');
+
+    try {
+      const url = buildUrl();
+      await loadPhoto(url);
+      crossfade(url);
+    } catch (err) {
+      if (window.iappyx) iappyx.log('Photo load error: ' + err.message);
+    } finally {
+      isLoading = false;
+      loaderEl.classList.remove('active');
+    }
+  }
+
+  function crossfade(url) {
+    const front = frontIsA ? layerA : layerB;
+    const back  = frontIsA ? layerB : layerA;
+
+    // Put new photo on back layer (currently invisible)
+    back.style.backgroundImage = `url("${url}")`;
+    back.style.transition = 'none';
+    back.style.opacity = '0';
+
+    // Force reflow
+    void back.offsetWidth;
+
+    // Fade back layer in over FADE_DURATION
+    back.style.transition = `opacity ${FADE_DURATION}ms ease`;
+    back.style.opacity = '1';
+
+    // Fade old front layer out simultaneously
+    front.style.transition = `opacity ${FADE_DURATION}ms ease`;
+    front.style.opacity = '0';
+
+    frontIsA = !frontIsA;
+  }
+
+  // ── Shake visual feedback ──────────────────────────────────────────────
+  function triggerRipple() {
+    rippleEl.style.transition = 'none';
+    rippleEl.style.opacity    = '0.9';
+    void rippleEl.offsetWidth;
+    rippleEl.style.transition = 'opacity 0.7s ease-out';
+    rippleEl.style.opacity    = '0';
+  }
+
+  function handleShake() {
+    triggerRipple();
+    fetchAndShow();
+  }
+
+  // ── Hint auto-hide ─────────────────────────────────────────────────────
+  function scheduleHintHide() {
+    if (hintTimer) clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => {
+      hintEl.classList.add('hidden');
+    }, 4000);
+  }
+
+  // ── RequestAnimationFrame loop (keeps bridge happy) ────────────────────
+  function tick() {
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // ── Init ───────────────────────────────────────────────────────────────
+  // Ensure layers cover full screen with no gap
+  const stage = document.getElementById('stage');
+  function fitStage() {
+    stage.style.width  = window.innerWidth  + 'px';
+    stage.style.height = window.innerHeight + 'px';
+  }
+  fitStage();
+  window.addEventListener('resize', fitStage);
+
+  // Show initial photo
+  fetchAndShow();
+
+  // Show and then hide the hint
+  scheduleHintHide();
+
+})();
+</script>
+</body>
+</html>

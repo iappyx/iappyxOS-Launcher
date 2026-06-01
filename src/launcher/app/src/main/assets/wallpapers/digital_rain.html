@@ -1,0 +1,356 @@
+<!-- Built with iappyxOS Launcher -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Digital Rain</title>
+</head>
+<body style="margin:0;padding:0;background:#000;overflow:hidden;">
+<canvas id="c" style="position:fixed;inset:0;width:100vw;height:100vh;display:block;"></canvas>
+<script>
+(function(){
+'use strict';
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const CELL = 19;
+const FONT_SIZE = 18;
+const FONT = FONT_SIZE + 'px monospace';
+const FADE_ALPHA = 0.05;
+const BLOOM_ALPHA = 0.32;
+const TARGET_FPS = 30;
+const FRAME_MS = 1000 / TARGET_FPS;
+const SPEED_TICK = 4; // frames per potential step
+
+// Glyph sets
+const KATAKANA = [];
+for (let i = 0xFF66; i <= 0xFF9F; i++) KATAKANA.push(String.fromCharCode(i));
+const DIGITS = '0123456789'.split('');
+const LATIN  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const ALL_GLYPHS = [...KATAKANA, ...DIGITS, ...LATIN.slice(0,8)];
+const GLYPH_COUNT = ALL_GLYPHS.length;
+
+// Colors
+const COLOR_HEAD   = '#CCFFCC';
+const COLOR_BRIGHT = '#00FF41';
+const COLOR_MID    = '#008F11';
+const COLOR_DARK   = '#003B00';
+
+// Offscreen atlas
+let atlas, atlasCtx, glyphW, glyphH;
+// Offscreen bloom canvas
+let bloomCanvas, bloomCtx;
+
+let cols = 0, rows = 0;
+let columns = [];
+let visible = true;
+let layout = null;
+let pageOffset = 0;
+let lastTime = 0;
+let frameCount = 0;
+
+// --- Atlas build ---
+function buildAtlas() {
+  glyphW = CELL;
+  glyphH = CELL;
+  const cols_a = GLYPH_COUNT;
+  atlas = document.createElement('canvas');
+  atlas.width  = glyphW * cols_a;
+  atlas.height = glyphH * 3; // row0=dark, row1=mid, row2=bright, row3=head done inline
+  atlasCtx = atlas.getContext('2d');
+  atlasCtx.font = FONT;
+  atlasCtx.textAlign = 'center';
+  atlasCtx.textBaseline = 'middle';
+
+  const colorRows = [COLOR_DARK, COLOR_MID, COLOR_BRIGHT];
+  for (let ri = 0; ri < colorRows.length; ri++) {
+    atlasCtx.fillStyle = colorRows[ri];
+    for (let gi = 0; gi < GLYPH_COUNT; gi++) {
+      atlasCtx.fillText(
+        ALL_GLYPHS[gi],
+        gi * glyphW + glyphW / 2,
+        ri * glyphH + glyphH / 2
+      );
+    }
+  }
+
+  // Head glyph row (row 3) — bright white-green
+  atlas.height = glyphH * 4;
+  // Re-draw previous rows since height change clears canvas
+  for (let ri = 0; ri < colorRows.length; ri++) {
+    atlasCtx.fillStyle = colorRows[ri];
+    for (let gi = 0; gi < GLYPH_COUNT; gi++) {
+      atlasCtx.fillText(
+        ALL_GLYPHS[gi],
+        gi * glyphW + glyphW / 2,
+        ri * glyphH + glyphH / 2
+      );
+    }
+  }
+  atlasCtx.fillStyle = COLOR_HEAD;
+  for (let gi = 0; gi < GLYPH_COUNT; gi++) {
+    atlasCtx.fillText(
+      ALL_GLYPHS[gi],
+      gi * glyphW + glyphW / 2,
+      3 * glyphH + glyphH / 2
+    );
+  }
+}
+
+// Rebuild atlas properly (without the resize trick)
+function buildAtlasFinal() {
+  glyphW = CELL;
+  glyphH = CELL;
+  const numGlyphs = GLYPH_COUNT;
+  atlas = document.createElement('canvas');
+  atlas.width  = glyphW * numGlyphs;
+  atlas.height = glyphH * 4; // rows: 0=dark,1=mid,2=bright,3=head
+  atlasCtx = atlas.getContext('2d');
+  atlasCtx.font = FONT;
+  atlasCtx.textAlign = 'center';
+  atlasCtx.textBaseline = 'middle';
+
+  const colorRows = [COLOR_DARK, COLOR_MID, COLOR_BRIGHT, COLOR_HEAD];
+  for (let ri = 0; ri < 4; ri++) {
+    atlasCtx.fillStyle = colorRows[ri];
+    for (let gi = 0; gi < numGlyphs; gi++) {
+      atlasCtx.fillText(
+        ALL_GLYPHS[gi],
+        gi * glyphW + glyphW / 2,
+        ri * glyphH + glyphH / 2
+      );
+    }
+  }
+}
+
+// --- Column state ---
+function makeColumn(colIndex) {
+  const x = colIndex * CELL;
+  const speedRoll = Math.random();
+  // 20% slow (step every 6 frames), 50% medium (every 4), 30% fast (every 2)
+  let stepEvery;
+  if (speedRoll < 0.20)       stepEvery = 6;
+  else if (speedRoll < 0.70)  stepEvery = 4;
+  else                        stepEvery = 2;
+
+  const length = Math.floor(rows * (0.3 + Math.random() * 0.65));
+  const startDelay = Math.floor(Math.random() * 80);
+
+  const glyphs = new Int16Array(rows);
+  for (let i = 0; i < rows; i++) glyphs[i] = Math.floor(Math.random() * GLYPH_COUNT);
+
+  return {
+    x,
+    head: -startDelay,       // current head row (can be negative = off-screen waiting)
+    length,
+    stepEvery,
+    glyphs,
+    active: true,
+    pauseAt: -1,
+    pauseDuration: 0,
+    pauseTimer: 0
+  };
+}
+
+function initColumns() {
+  cols = Math.floor(canvas.width / CELL);
+  rows = Math.floor(canvas.height / CELL) + 2;
+  columns = [];
+  for (let i = 0; i < cols; i++) columns.push(makeColumn(i));
+}
+
+// --- Resize ---
+function fit() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  bloomCanvas = document.createElement('canvas');
+  bloomCanvas.width  = canvas.width;
+  bloomCanvas.height = canvas.height;
+  bloomCtx = bloomCanvas.getContext('2d');
+  initColumns();
+  // Clear to black
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+window.addEventListener('resize', fit);
+
+// --- Layout awareness ---
+function setupLayout() {
+  try {
+    layout = JSON.parse(iappyxLayout.get());
+  } catch(e) {
+    layout = { cells: [], dock: [], pageCount: 1, pageWidth: window.innerWidth, screen: { width: window.innerWidth, height: window.innerHeight } };
+  }
+}
+
+function liveRects() {
+  if (!layout) return [];
+  const out = [];
+  const pw = layout.pageWidth || window.innerWidth;
+  const pageCount = Math.max(1, layout.pageCount || 1);
+  const fracHome = pageOffset * (pageCount - 1);
+  for (const c of (layout.cells || [])) {
+    out.push({ x: c.x + (c.page - fracHome) * pw, y: c.y, w: c.w, h: c.h });
+  }
+  for (const d of (layout.dock || [])) out.push({ x: d.x, y: d.y, w: d.w, h: d.h });
+  return out;
+}
+
+// Check if a glyph cell (screen px) is inside any icon rect — dim if so
+function insideAnyRect(px, py, rects) {
+  for (const r of rects) {
+    if (px >= r.x - 2 && px < r.x + r.w + 2 && py >= r.y - 2 && py < r.y + r.h + 2) return true;
+  }
+  return false;
+}
+
+// --- Draw one glyph from atlas ---
+// colorRow: 0=dark,1=mid,2=bright,3=head
+function drawGlyph(gx, gy, glyphIdx, colorRow, alpha) {
+  const sx = glyphIdx * glyphW;
+  const sy = colorRow * glyphH;
+  if (alpha < 1) {
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(atlas, sx, sy, glyphW, glyphH, gx * CELL, gy * CELL, CELL, CELL);
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.drawImage(atlas, sx, sy, glyphW, glyphH, gx * CELL, gy * CELL, CELL, CELL);
+  }
+}
+
+// --- Update & draw ---
+let localFrame = 0;
+
+function step(ts) {
+  requestAnimationFrame(step);
+  if (!visible) return;
+
+  const delta = ts - lastTime;
+  if (delta < FRAME_MS - 2) return; // cap to ~30fps
+  lastTime = ts;
+  localFrame++;
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const rects = liveRects();
+
+  // 1. Fade trail with semi-transparent black overlay
+  ctx.globalAlpha = FADE_ALPHA;
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalAlpha = 1.0;
+
+  // 2. Update + draw columns
+  for (let ci = 0; ci < columns.length; ci++) {
+    const col = columns[ci];
+
+    // Mutate glyphs randomly (~10% per frame)
+    for (let r = 0; r < rows; r++) {
+      if (Math.random() < 0.10) {
+        col.glyphs[r] = Math.floor(Math.random() * GLYPH_COUNT);
+      }
+    }
+
+    // Handle pause
+    if (col.pauseAt >= 0 && col.head === col.pauseAt) {
+      col.pauseTimer++;
+      if (col.pauseTimer < col.pauseDuration) {
+        // draw but don't advance
+        drawColumn(col, rects);
+        continue;
+      } else {
+        col.pauseAt = -1;
+        col.pauseTimer = 0;
+      }
+    }
+
+    // Advance head
+    if (localFrame % col.stepEvery === 0) {
+      col.head++;
+    }
+
+    // Column finished (head gone past screen + length)
+    if (col.head - col.length > rows + 2) {
+      // Resurrect
+      const newCol = makeColumn(ci);
+      newCol.x = ci * CELL;
+      columns[ci] = newCol;
+      continue;
+    }
+
+    // Occasionally schedule a pause mid-stream
+    if (col.pauseAt < 0 && col.head > 0 && col.head < rows - 5 && Math.random() < 0.002) {
+      col.pauseAt = col.head;
+      col.pauseDuration = Math.floor(10 + Math.random() * 40);
+    }
+
+    drawColumn(col, rects);
+  }
+
+  // 3. Bloom pass — copy main to bloom canvas, blur via CSS filter, composite back
+  bloomCtx.clearRect(0, 0, W, H);
+  bloomCtx.drawImage(canvas, 0, 0);
+  // Apply bloom onto main canvas
+  ctx.save();
+  ctx.globalAlpha = BLOOM_ALPHA;
+  ctx.filter = 'blur(4px)';
+  ctx.drawImage(bloomCanvas, 0, 0);
+  ctx.filter = 'none';
+  ctx.restore();
+  ctx.globalAlpha = 1.0;
+}
+
+function drawColumn(col, rects) {
+  const head = col.head;
+  const len  = col.length;
+  const cx   = col.x / CELL; // column index
+
+  for (let r = 0; r < rows; r++) {
+    const screenY = r * CELL;
+    if (screenY > canvas.height) break;
+
+    // Distance from head
+    const dist = head - r;
+    if (dist < 0 || dist > len) continue;
+
+    const screenX = col.x;
+    const inIcon = insideAnyRect(screenX, screenY, rects);
+    const baseAlpha = inIcon ? 0.18 : 1.0;
+
+    const gi = col.glyphs[r] % GLYPH_COUNT;
+
+    if (dist === 0) {
+      // Head glyph — bright white-green, row 3
+      drawGlyph(cx, r, gi, 3, baseAlpha);
+    } else {
+      // Trail — choose color by depth ratio
+      const ratio = dist / len;
+      let colorRow;
+      if (ratio < 0.25)      colorRow = 2; // bright
+      else if (ratio < 0.6)  colorRow = 1; // mid
+      else                   colorRow = 0; // dark
+      drawGlyph(cx, r, gi, colorRow, baseAlpha);
+    }
+  }
+}
+
+// --- Visibility & layout hooks ---
+if (window.iappyx) {
+  iappyx.onVisibility = (v) => { visible = !!v; };
+  iappyx.onPageOffset = (x) => { pageOffset = x; };
+  iappyx.onLayoutChanged = (next) => { layout = next; };
+}
+
+// --- Boot ---
+buildAtlasFinal();
+setupLayout();
+fit();
+requestAnimationFrame(step);
+
+})();
+</script>
+</body>
+</html>

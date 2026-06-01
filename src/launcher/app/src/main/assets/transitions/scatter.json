@@ -1,0 +1,10 @@
+{
+  "page": {
+    "translationX": "0",
+    "alpha":        "max(0, 1 - abs(p))"
+  },
+  "cell": {
+    "translationX": "cos(cellIndex * 1.37 + cellRow * 0.7) * w * 1.5 * abs(p)",
+    "translationY": "sin(cellIndex * 1.37 + cellCol * 0.5) * h * 1.5 * abs(p)"
+  }
+}

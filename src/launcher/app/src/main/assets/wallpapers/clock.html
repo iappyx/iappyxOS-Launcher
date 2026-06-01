@@ -1,0 +1,51 @@
+<!--
+  MIT License - Copyright (c) 2026 iappyx
+  Hue drift — slow-drifting radial colour gradient. No clock, no text. Reacts
+  to home-pager swipes (page parallax) and device tilt (sensor parallax).
+  File still named clock.html for pref-id stability; id="clock" remains the
+  asset-id even though there's no longer a clock face on it.
+-->
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"></head>
+<body style="margin:0;padding:0;background:#000;overflow:hidden;">
+<canvas id="bg" style="position:fixed;inset:0;width:100vw;height:100vh;display:block;"></canvas>
+<script>
+(function(){
+  const c = document.getElementById('bg');
+  const ctx = c.getContext('2d');
+  function fit(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+  fit(); window.addEventListener('resize', fit);
+
+  let pageX = 0, tiltX = 0, tiltY = 0, visible = true;
+  if (window.iappyx) {
+    iappyx.log('huedrift booted');
+    iappyx.onPageOffset    = (x) => { pageX = x; };
+    iappyx.onAccelerometer = (x, y) => {
+      tiltX = tiltX * 0.85 + x * 0.15;
+      tiltY = tiltY * 0.85 + y * 0.15;
+    };
+    iappyx.onVisibility = (v) => { visible = !!v; };
+    iappyx.enableAccelerometer(true);
+  }
+
+  function tick(t){
+    if (!visible) { requestAnimationFrame(tick); return; }
+    const w = c.width, h = c.height;
+    const hue = (t / 80) % 360;
+
+    const cx = w * (0.30 + pageX * 0.40 + tiltX * -0.020);
+    const cy = h * (0.25 + tiltY *  0.020);
+
+    const g = ctx.createRadialGradient(cx, cy, 50, w*0.5, h*0.6, Math.max(w,h));
+    g.addColorStop(0,    `hsl(${hue}, 70%, 28%)`);
+    g.addColorStop(0.55, `hsl(${(hue+40)%360}, 60%, 14%)`);
+    g.addColorStop(1,    '#020308');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body></html>

@@ -1,0 +1,10 @@
+{
+  "page": {
+    "translationX": "0",
+    "alpha":        "max(0, 1 - abs(p))"
+  },
+  "cell": {
+    "translationX": "sign(p) * w * clamp((abs(p) - cellCol * 0.08) / max(0.2, 1 - (cols - 1) * 0.08), 0, 1)",
+    "rotationY":    "0"
+  }
+}

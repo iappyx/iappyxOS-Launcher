@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_home"
+    android:fitsSystemWindows="true">
+
+    <include layout="@layout/settings_toolbar"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.iappyx.launcher.widget.GridPreviewView
+                android:id="@+id/grid_preview_view"
+                android:layout_width="140dp"
+                android:layout_height="180dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/grid_preview"
+                style="@style/TextHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_grid_preview_default"
+                android:gravity="center"
+                android:paddingBottom="16dp"/>
+
+            <TextView style="@style/TextLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_grid_columns"
+                android:paddingBottom="4dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="12dp">
+                <Button android:id="@+id/cols_minus" style="@style/Button.Secondary"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:text="@string/stepper_minus" android:textSize="22sp"
+                    android:paddingStart="0dp" android:paddingEnd="0dp"/>
+                <TextView android:id="@+id/cols_value"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="5"
+                    android:textColor="@color/text_primary" android:textSize="20sp"
+                    android:textStyle="bold" android:gravity="center"/>
+                <Button android:id="@+id/cols_plus" style="@style/Button.Secondary"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:text="@string/stepper_plus" android:textSize="22sp"
+                    android:paddingStart="0dp" android:paddingEnd="0dp"/>
+            </LinearLayout>
+
+            <TextView style="@style/TextLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_grid_rows"
+                android:paddingBottom="4dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="12dp">
+                <Button android:id="@+id/rows_minus" style="@style/Button.Secondary"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:text="@string/stepper_minus" android:textSize="22sp"
+                    android:paddingStart="0dp" android:paddingEnd="0dp"/>
+                <TextView android:id="@+id/rows_value"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="6"
+                    android:textColor="@color/text_primary" android:textSize="20sp"
+                    android:textStyle="bold" android:gravity="center"/>
+                <Button android:id="@+id/rows_plus" style="@style/Button.Secondary"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:text="@string/stepper_plus" android:textSize="22sp"
+                    android:paddingStart="0dp" android:paddingEnd="0dp"/>
+            </LinearLayout>
+
+            <TextView style="@style/TextLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_grid_dock_slots"
+                android:paddingBottom="4dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="12dp">
+                <Button android:id="@+id/dock_minus" style="@style/Button.Secondary"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:text="@string/stepper_minus" android:textSize="22sp"
+                    android:paddingStart="0dp" android:paddingEnd="0dp"/>
+                <TextView android:id="@+id/dock_value"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="5"
+                    android:textColor="@color/text_primary" android:textSize="20sp"
+                    android:textStyle="bold" android:gravity="center"/>
+                <Button android:id="@+id/dock_plus" style="@style/Button.Secondary"
+                    android:layout_width="44dp" android:layout_height="44dp"
+                    android:text="@string/stepper_plus" android:textSize="22sp"
+                    android:paddingStart="0dp" android:paddingEnd="0dp"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/apply_grid_btn"
+                style="@style/Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/settings_grid_apply"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/separator"/>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_dock_labels_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_dock_labels_hint"/>
+                </LinearLayout>
+                <Switch android:id="@+id/toggle_dock_labels"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:thumbTint="@color/accent"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/app_drawer_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_app_drawer_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_app_drawer_hint"/>
+                </LinearLayout>
+                <TextView android:id="@+id/app_drawer_value" style="@style/TextLabel"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_theme_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_widget_theme_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_widget_theme_hint"/>
+                </LinearLayout>
+                <TextView style="@style/TextLabel"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="›"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_long_press_menu_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_long_press_menu_hint"/>
+                </LinearLayout>
+                <Switch android:id="@+id/toggle_long_press_menu"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:thumbTint="@color/accent"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_allow_rotation_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_allow_rotation_hint"/>
+                </LinearLayout>
+                <Switch android:id="@+id/toggle_allow_rotation"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:thumbTint="@color/accent"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/language_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_language_label"/>
+                    <TextView android:id="@+id/language_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_language_system"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/dominant_orientation_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_dominant_orientation_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_dominant_orientation_hint"/>
+                </LinearLayout>
+                <TextView android:id="@+id/dominant_orientation_value" style="@style/TextLabel"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/accent"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_notification_badges_label"/>
+                    <TextView android:id="@+id/notification_badges_hint" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_notification_badges_hint"/>
+                </LinearLayout>
+                <Switch android:id="@+id/toggle_notification_badges"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:thumbTint="@color/accent"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/notification_badges_grant_btn"
+                style="@style/TextLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_notification_badges_grant"
+                android:textColor="@color/accent"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/page_transition_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_page_transition_label"/>
+                    <TextView android:id="@+id/page_transition_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_page_transition_default"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/icon_filter_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_icon_style_label"/>
+                    <TextView android:id="@+id/icon_filter_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_icon_style_none"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/icon_pack_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_icon_pack_label"/>
+                    <TextView android:id="@+id/icon_pack_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_icon_pack_none"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/mask_unthemed_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_mask_unthemed_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_mask_unthemed_hint"/>
+                </LinearLayout>
+                <Switch android:id="@+id/toggle_mask_unthemed"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:thumbTint="@color/accent"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/live_wallpaper_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_live_wallpaper_label"/>
+                    <TextView android:id="@+id/live_wallpaper_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_live_wallpaper_set_prompt"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/clippings_ttl_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Clippings auto-expire"/>
+                    <TextView android:id="@+id/clippings_ttl_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Defaults"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+
+            <TextView style="@style/TextHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_wallpaper_toolkit_section"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:id="@+id/wallpaper_perm_location"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_wallpaper_location_label"/>
+                    <TextView android:id="@+id/wallpaper_perm_location_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_wallpaper_perm_grant_prompt"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/wallpaper_perm_calendar"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_wallpaper_calendar_label"/>
+                    <TextView android:id="@+id/wallpaper_perm_calendar_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_wallpaper_perm_grant_prompt"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/wallpaper_perm_media"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_wallpaper_media_label"/>
+                    <TextView android:id="@+id/wallpaper_perm_media_value" style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_wallpaper_perm_grant_prompt"/>
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+    </ScrollView>
+</LinearLayout>

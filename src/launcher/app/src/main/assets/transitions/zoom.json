@@ -1,0 +1,8 @@
+{
+  "page": {
+    "translationX": "0",
+    "scaleX":       "1 + p * 0.175 + abs(p) * 0.025",
+    "scaleY":       "1 + p * 0.175 + abs(p) * 0.025",
+    "alpha":        "max(0, 1 - abs(p))"
+  }
+}

@@ -1,0 +1,238 @@
+<!--
+  MIT License - Copyright (c) 2026 iappyx
+  Battery Jelly — a viscous liquid surface that fills the screen from the
+  bottom up, with height proportional to the device's battery level. The
+  liquid's colour shifts with charge level (red → orange → teal → green),
+  and when the device is charging, bubbles rise through it. Polls
+  iappyxDevice.getDeviceInfo() every 5s; visual fill interpolates smoothly
+  toward the real value so battery transitions look like the jelly is
+  actually filling.
+-->
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"></head>
+<body style="margin:0;padding:0;background:#000;overflow:hidden;">
+<canvas id="bg" style="position:fixed;inset:0;width:100vw;height:100vh;display:block;"></canvas>
+<script>
+(function(){
+  const c = document.getElementById('bg');
+  const ctx = c.getContext('2d');
+  function fit(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+  fit(); window.addEventListener('resize', fit);
+
+  // ── State ───────────────────────────────────────────────────────────
+  let visible = true;
+  let realLevel = 50;     // last value pulled from the device (0-100, -1 unknown)
+  let realCharging = false;
+  let displayLevel = 50;  // smoothly interpolated toward realLevel for fluid motion
+  const bubbles = [];     // active rising bubbles when charging
+
+  if (window.iappyx) {
+    iappyx.log('battery_jelly booted');
+    iappyx.onVisibility = (v) => { visible = !!v; };
+  }
+
+  // ── Battery polling ────────────────────────────────────────────────
+  // iappyxDevice.getDeviceInfo() is a sync JSON-string getter — no
+  // callback. Battery doesn't change fast, so 5s is plenty.
+  function pullBattery(){
+    if (!window.iappyxDevice) return;
+    try {
+      const info = JSON.parse(iappyxDevice.getDeviceInfo());
+      const b = (typeof info.battery === 'number' && info.battery >= 0)
+        ? info.battery : 50;  // unknown → mid so the wallpaper still has something to draw
+      realLevel = Math.max(0, Math.min(100, b));
+      realCharging = !!info.charging;
+    } catch (e) { /* device bridge not ready yet, retry next tick */ }
+  }
+  pullBattery();
+  setInterval(pullBattery, 5000);
+
+  // ── Colour palette ─────────────────────────────────────────────────
+  // Five bands by level, interpolated. When charging, every band gets
+  // tinted toward cyan so the user reads "the device is taking energy in"
+  // without having to find a tiny battery icon. Each band carries its own
+  // top + bottom colour for a vertical gradient through the liquid.
+  const BANDS = [
+    { at:   0, top:[255, 59, 48],  bot:[122, 14, 8]   },  // critical red
+    { at:  15, top:[255,149,  0],  bot:[122, 69, 0]   },  // amber
+    { at:  30, top:[  0,191,165],  bot:[  0,122,107]  },  // teal
+    { at:  60, top:[ 52,199, 89],  bot:[ 27,122, 51]  },  // green
+    { at: 100, top:[133,255,165],  bot:[ 32,168, 78]  },  // emerald-light (full)
+  ];
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function lerpRgb(a, b, t){
+    return [Math.round(lerp(a[0],b[0],t)), Math.round(lerp(a[1],b[1],t)), Math.round(lerp(a[2],b[2],t))];
+  }
+  function colourFor(level){
+    // Find the two bands that bracket `level` and interpolate.
+    let lo = BANDS[0], hi = BANDS[BANDS.length - 1];
+    for (let i = 0; i < BANDS.length - 1; i++) {
+      if (level >= BANDS[i].at && level <= BANDS[i+1].at) { lo = BANDS[i]; hi = BANDS[i+1]; break; }
+    }
+    const t = hi.at === lo.at ? 0 : (level - lo.at) / (hi.at - lo.at);
+    let top = lerpRgb(lo.top, hi.top, t);
+    let bot = lerpRgb(lo.bot, hi.bot, t);
+    if (realCharging) {
+      // Pull the whole gradient toward cyan to signal charging. Subtle —
+      // we don't want to swallow the level signal.
+      const cyan = [0, 199, 255];
+      top = lerpRgb(top, cyan, 0.35);
+      bot = lerpRgb(bot, cyan, 0.20);
+    }
+    return { top, bot };
+  }
+  function rgbStr(c, a){ return `rgba(${c[0]},${c[1]},${c[2]},${a==null?1:a})`; }
+
+  // ── Liquid surface ─────────────────────────────────────────────────
+  // The surface is a polyline: at each x, sample the sum of three sine
+  // waves with different frequencies / amplitudes / phases. Three is
+  // enough to feel organic; more turns into noise.
+  const WAVE = [
+    { amp: 6,  k: 0.018, speed: 0.0014, phase: 0    },
+    { amp: 3,  k: 0.045, speed: 0.0023, phase: 1.7  },
+    { amp: 2,  k: 0.090, speed: 0.0036, phase: 3.1  },
+  ];
+  function surfaceY(baseY, x, t){
+    let y = baseY;
+    for (const w of WAVE) y += w.amp * Math.sin(x * w.k + t * w.speed + w.phase);
+    // When charging, add a small breathing motion to the whole surface so
+    // it pulses with the energy intake. Disabled when on battery.
+    if (realCharging) y += 4 * Math.sin(t * 0.0028);
+    return y;
+  }
+
+  // ── Bubbles (charging only) ────────────────────────────────────────
+  function spawnBubble(w, h, surfaceTop){
+    bubbles.push({
+      x: Math.random() * w,
+      y: h + Math.random() * 30,           // start just below screen
+      r: 3 + Math.random() * 9,
+      vy: 0.6 + Math.random() * 1.6,
+      wobbleAmp: 4 + Math.random() * 8,
+      wobbleK: 0.005 + Math.random() * 0.01,
+      bornAt: Date.now(),
+    });
+  }
+  function updateBubbles(t, surfaceFn){
+    // Rise each bubble; pop when it crosses the liquid surface (so it
+    // looks like the bubble surfaced rather than passed through into air).
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      b.y -= b.vy;
+      const s = surfaceFn(b.x);
+      if (b.y - b.r < s) {
+        bubbles.splice(i, 1);
+        continue;
+      }
+    }
+  }
+  function drawBubbles(t, surfaceFn, top){
+    for (const b of bubbles) {
+      const xJitter = b.wobbleAmp * Math.sin(t * b.wobbleK + b.bornAt);
+      ctx.beginPath();
+      ctx.arc(b.x + xJitter, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = rgbStr(top, 0.35);
+      ctx.fill();
+      ctx.strokeStyle = rgbStr(top, 0.7);
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+  }
+
+  // ── Frame loop ─────────────────────────────────────────────────────
+  function tick(t){
+    if (!visible) { requestAnimationFrame(tick); return; }
+    const w = c.width, h = c.height;
+
+    // Smoothly approach the real level so a 30%→55% jump from a polling
+    // tick doesn't snap the surface — it should look like the jelly is
+    // filling. Per-frame catch-up of ~3% covers a 25% jump in well under
+    // a second; stable battery levels stay rock-steady.
+    displayLevel += (realLevel - displayLevel) * 0.05;
+
+    const fillFraction = displayLevel / 100;
+    const surfaceBase = h - h * fillFraction;
+    const { top, bot } = colourFor(displayLevel);
+
+    // Background: deep dark behind the liquid. A subtle radial vignette
+    // helps the surface waves read against the air gap above the jelly.
+    const bg = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, Math.max(w, h)*0.7);
+    bg.addColorStop(0, '#15151E');
+    bg.addColorStop(1, '#08080C');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // Sample the surface once per column so the bubble logic and the
+    // fill path agree on where the surface is.
+    const surfacePts = new Float32Array(w + 2);
+    for (let x = 0; x <= w; x++) surfacePts[x] = surfaceY(surfaceBase, x, t);
+    const surfaceAt = (x) => surfacePts[Math.max(0, Math.min(w, Math.round(x)))];
+
+    // Spawn + update bubbles only when actively charging. Cap to keep the
+    // particle count bounded on slow devices.
+    if (realCharging && bubbles.length < 60) {
+      const spawnRate = 0.4;  // ~24 bubbles/sec at 60fps
+      if (Math.random() < spawnRate) spawnBubble(w, h, surfaceBase);
+    }
+    updateBubbles(t, surfaceAt);
+
+    // ── Fill the liquid ──
+    // Vertical gradient: top colour at the surface, bottom colour at the
+    // bottom of the screen. The gradient is anchored to the surface so
+    // when the level is low the gradient compresses naturally.
+    const fillGrad = ctx.createLinearGradient(0, surfaceBase - 40, 0, h);
+    fillGrad.addColorStop(0, rgbStr(top));
+    fillGrad.addColorStop(1, rgbStr(bot));
+    ctx.fillStyle = fillGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    for (let x = 0; x <= w; x++) ctx.lineTo(x, surfacePts[x]);
+    ctx.lineTo(w, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // ── Surface highlight ──
+    // Thin lighter line right on the wave to give the liquid a clear
+    // boundary against the dark air. Falls off in opacity at the edges
+    // so it doesn't fight the rounded corners on phones with curved
+    // displays.
+    ctx.beginPath();
+    for (let x = 0; x <= w; x++) {
+      if (x === 0) ctx.moveTo(x, surfacePts[x]);
+      else ctx.lineTo(x, surfacePts[x]);
+    }
+    ctx.strokeStyle = rgbStr([Math.min(255, top[0]+40), Math.min(255, top[1]+40), Math.min(255, top[2]+40)], 0.55);
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // ── Bubbles ──
+    drawBubbles(t, surfaceAt, top);
+
+    // ── Charging bolt indicator (top-right, subtle) ──
+    // A small zap glyph fades in when charging so the user doesn't have
+    // to infer the state from the colour shift alone. Discreet — the
+    // wallpaper isn't a status bar; it's a hint.
+    if (realCharging) {
+      ctx.save();
+      const cx = w - 60, cy = 80;
+      ctx.globalAlpha = 0.35 + 0.25 * Math.sin(t * 0.003);
+      ctx.fillStyle = rgbStr([255, 255, 255]);
+      ctx.beginPath();
+      ctx.moveTo(cx + 4, cy);
+      ctx.lineTo(cx - 8, cy + 18);
+      ctx.lineTo(cx - 1, cy + 18);
+      ctx.lineTo(cx - 5, cy + 34);
+      ctx.lineTo(cx + 9, cy + 14);
+      ctx.lineTo(cx + 2, cy + 14);
+      ctx.lineTo(cx + 6, cy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body></html>

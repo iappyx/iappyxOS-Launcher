@@ -1,0 +1,166 @@
+<!-- Built with iappyxOS Launcher -->
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ambient Horizon</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0f}
+canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;display:block}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(function(){
+  // ── State ────────────────────────────────────────────────
+  // Visibility: pause when off-screen.
+  let visible = true;
+  // Page swipe — 0..1 across the whole pager. We use it for horizontal parallax.
+  let pageOffset = 0;
+  // Accelerometer — eased to avoid jitter. tiltX / tiltY in [-1, 1] approx.
+  let tiltX = 0, tiltY = 0;
+  let easedTiltX = 0, easedTiltY = 0;
+  // 50 particles. Slow drift; subtle response to tilt and swipe.
+  const particles = [];
+  for (let i = 0; i < 50; i++) {
+    particles.push({
+      x: Math.random(), y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.0002,
+      vy: (Math.random() - 0.5) * 0.0002,
+      r: 0.6 + Math.random() * 1.4,        // px, before density scaling
+      a: 0.10 + Math.random() * 0.18,      // alpha
+    });
+  }
+
+  // ── Bridge wiring ────────────────────────────────────────
+  if (window.iappyx) {
+    iappyx.onVisibility    = v => { visible = !!v; };
+    iappyx.onPageOffset    = x => { pageOffset = x || 0; };
+    iappyx.onAccelerometer = (ax, ay) => {
+      // Device coord: ax is left/right tilt, ay is up/down. Cap to [-1, 1].
+      tiltX = Math.max(-1, Math.min(1, (ax || 0) / 6));
+      tiltY = Math.max(-1, Math.min(1, (ay || 0) / 6));
+    };
+    iappyx.enableAccelerometer && iappyx.enableAccelerometer(true);
+  }
+
+  // ── Canvas ───────────────────────────────────────────────
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  function fit() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  fit();
+  window.addEventListener('resize', fit);
+
+  // ── Time-of-day palette ──────────────────────────────────
+  // Map hour∈[0,24] to two corners of a vertical gradient (top, bottom).
+  // 6 reference stops cycled smoothly. Restrained palette — desaturated
+  // blues / mauves / amber, never pure primary.
+  const stops = [
+    // [hour, topRGB, bottomRGB]
+    [ 0, [12, 14, 28],  [4, 5, 12]   ],   // deep night
+    [ 5, [22, 26, 44],  [10, 12, 22] ],   // pre-dawn
+    [ 8, [62, 50, 48],  [22, 18, 28] ],   // morning, warm horizon
+    [12, [54, 64, 88],  [22, 28, 44] ],   // midday, cool diffuse
+    [17, [78, 56, 48],  [28, 22, 32] ],   // afternoon, amber
+    [21, [28, 26, 48],  [10, 10, 22] ],   // dusk, indigo
+    [24, [12, 14, 28],  [4, 5, 12]   ],   // wraps to night (matches hour 0)
+  ];
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerpRgb(c0, c1, t) {
+    return [lerp(c0[0], c1[0], t), lerp(c0[1], c1[1], t), lerp(c0[2], c1[2], t)];
+  }
+  function paletteAt(hourFloat) {
+    // Find bracket [stop_i, stop_i+1] containing hourFloat.
+    for (let i = 0; i < stops.length - 1; i++) {
+      if (hourFloat >= stops[i][0] && hourFloat <= stops[i + 1][0]) {
+        const span = stops[i + 1][0] - stops[i][0];
+        const t = (hourFloat - stops[i][0]) / span;
+        return [
+          lerpRgb(stops[i][1], stops[i + 1][1], t),
+          lerpRgb(stops[i][2], stops[i + 1][2], t),
+        ];
+      }
+    }
+    return [stops[0][1], stops[0][2]];
+  }
+  function rgbStr(c) {
+    return 'rgb(' + (c[0]|0) + ',' + (c[1]|0) + ',' + (c[2]|0) + ')';
+  }
+
+  // ── Render ───────────────────────────────────────────────
+  let lastFrame = 0;
+  // Frame budget: 30fps cap → 33ms minimum interval.
+  const FRAME_INTERVAL_MS = 33;
+
+  function draw(timestamp) {
+    requestAnimationFrame(draw);
+    if (!visible) return;
+    if (timestamp - lastFrame < FRAME_INTERVAL_MS) return;
+    const dt = Math.min(0.05, (timestamp - lastFrame) / 1000);
+    lastFrame = timestamp;
+
+    const w = canvas.width, h = canvas.height;
+    const dpr = window.devicePixelRatio || 1;
+
+    // Tilt easing — soften the motion so it doesn't track every micro-movement.
+    easedTiltX += (tiltX - easedTiltX) * 0.08;
+    easedTiltY += (tiltY - easedTiltY) * 0.08;
+
+    // Time of day → gradient.
+    const now = new Date();
+    const hour = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+    const [top, bot] = paletteAt(hour);
+
+    // Vertical gradient backdrop.
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, rgbStr(top));
+    grad.addColorStop(1, rgbStr(bot));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Horizontal parallax from page swipe — wallpaper drifts ~30% of swipe.
+    // pageOffset is 0..1 across the whole pager; convert to a small px shift.
+    const swipePx = (pageOffset - 0.5) * w * 0.25;
+    // Accelerometer parallax — max 6dp displacement at full tilt.
+    const tiltPx = 6 * dpr;
+    const offsetX = -swipePx + easedTiltX * tiltPx;
+    const offsetY = easedTiltY * tiltPx;
+
+    // Soft particle field. Slow continuous drift + parallax offsets.
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx * dt * 60;
+      p.y += p.vy * dt * 60;
+      // Wrap.
+      if (p.x < -0.05) p.x = 1.05; else if (p.x > 1.05) p.x = -0.05;
+      if (p.y < -0.05) p.y = 1.05; else if (p.y > 1.05) p.y = -0.05;
+      const px = p.x * w + offsetX;
+      const py = p.y * h + offsetY;
+      ctx.beginPath();
+      ctx.arc(px, py, p.r * dpr, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + p.a + ')';
+      ctx.fill();
+    }
+
+    // Single soft ambient glow that follows tilt — almost imperceptible.
+    // Becomes the wallpaper's "alive" signal at rest.
+    const cx = w * 0.5 + easedTiltX * w * 0.06;
+    const cy = h * 0.45 + easedTiltY * h * 0.04;
+    const radial = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.6);
+    // Glow color: a 30% brighter shade of the top palette stop.
+    const glowR = Math.min(255, top[0] + 30);
+    const glowG = Math.min(255, top[1] + 30);
+    const glowB = Math.min(255, top[2] + 30);
+    radial.addColorStop(0, 'rgba(' + glowR + ',' + glowG + ',' + glowB + ',0.25)');
+    radial.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = radial;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body></html>

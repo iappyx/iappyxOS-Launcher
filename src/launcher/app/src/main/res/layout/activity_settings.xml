@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_home"
+    android:fitsSystemWindows="true">
+
+    <include layout="@layout/settings_toolbar"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <!-- AI assistant -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:id="@+id/ai_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_ai_section"/>
+                    <TextView android:id="@+id/ai_row_subtitle"
+                        style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="API keys, models, GitHub token"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Display & appearance -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/display_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_display_section"/>
+                    <TextView android:id="@+id/display_row_subtitle"
+                        style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Grid, toggles, wallpaper, transitions, icons"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Profiles -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/profiles_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_profiles_label"/>
+                    <TextView android:id="@+id/profiles_subtitle"
+                        style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_profiles_default_subtitle"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- PLUGINS -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/plugins_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_plugins_label"/>
+                    <TextView android:id="@+id/plugins_row_subtitle"
+                        style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Installed plugins, capabilities, network restrictions"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Backup & restore -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/backup_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_backup_section"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Export, import, cleanup, clear chat history"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- REMOTE EDIT FEATURE: row -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/remoteedit_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_remoteedit_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_remoteedit_subtitle"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- USAGE: Battery usage row -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/widget_usage_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_battery_usage_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="See which widgets are draining the battery"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- APPLOCK: BEGIN — App locks settings row in its own Card.
+             Standalone so it groups with the security/privacy story
+             rather than the battery-usage card it doesn't belong with. -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/app_locks_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_app_locks_label"/>
+                    <TextView style="@style/TextHint"
+                        android:id="@+id/app_locks_row_subtitle"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_app_locks_subtitle_none"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+        <!-- APPLOCK: END -->
+
+        <!-- QUICK WIDGETS: BEGIN — row that opens the manager activity
+             where the user can bind widgets to Quick Settings tile slots.
+             Removable as a unit with the rest of QUICK WIDGETS. -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/quick_widgets_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_quickwidgets_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_quickwidgets_subtitle"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+        <!-- QUICK WIDGETS: END -->
+
+        <!-- Default-launcher picker shortcut — deep-link to the system
+             "Default home app" setting. Subtitle updates dynamically
+             based on whether iappyxOS is the current default. -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/default_launcher_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_default_launcher_label"/>
+                    <TextView
+                        android:id="@+id/default_launcher_row_subtitle"
+                        style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_default_launcher_subtitle_current"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Restart launcher — force-stop + relaunch. Useful after
+             config changes that don't take effect immediately, or to
+             recover from a stuck render state. -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/restart_launcher_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_restart_launcher_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_restart_launcher_subtitle"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- About -->
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+            <LinearLayout
+                android:id="@+id/about_row"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+                    <TextView style="@style/TextLabel"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_about_label"/>
+                    <TextView style="@style/TextHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_about_hint"/>
+                </LinearLayout>
+                <TextView style="@style/TextHint"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/chevron_right" android:textSize="22sp"
+                    android:paddingStart="8dp" android:paddingEnd="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space android:layout_width="match_parent" android:layout_height="24dp"/>
+    </LinearLayout>
+    </ScrollView>
+</LinearLayout>

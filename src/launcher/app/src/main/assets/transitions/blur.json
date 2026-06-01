@@ -1,0 +1,9 @@
+{
+  "page": {
+    "translationX": "0",
+    "alpha":        "max(0, 1 - abs(p))",
+    "scaleX":       "1 - 0.04 * abs(p)",
+    "scaleY":       "1 - 0.04 * abs(p)",
+    "blur":         "abs(p) * 28"
+  }
+}

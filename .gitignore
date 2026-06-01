@@ -1,0 +1,42 @@
+# Claude Code
+.claude/
+
+# macOS
+**/.DS_Store
+
+# Secrets — local signing config + SDK paths
+*.jks
+*.keystore
+**/key.properties
+**/local.properties
+
+# Secrets — third-party service configs + env files (drop one in, never commit it)
+**/.env
+**/.env.*
+**/credentials.json
+**/firebase_config.json
+**/firebase-adminsdk*.json
+**/google-services.json
+
+# Build artifacts (bin/iappyxOS-Launcher.apk IS tracked — primary
+# download link on GitHub. Stray APKs inside build/ are already
+# covered by the **/build/ rule above, so no *.apk rule is needed.)
+**/build/
+**/.gradle/
+*.hprof
+
+# Local design + dev assets — Affinity icon source, scrcpy, screen-capture
+# videos, etc. Same convention as the sibling iappyxOS repo.
+build-tools/
+
+# Tooling output
+captures/
+*.log
+*.bak
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/

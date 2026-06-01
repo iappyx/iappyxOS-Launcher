@@ -1,0 +1,11 @@
+{
+  "slug": "aurora",
+  "name": "Aurora",
+  "subtitle": "Holographic cyan→magenta→gold→teal sheen over each icon",
+  "bake": [
+    {
+      "op": "aurora",
+      "colors": ["#FF00E5FF", "#FFE040FB", "#FFFFD54F", "#FF1DE9B6", "#FF00E5FF"]
+    }
+  ]
+}

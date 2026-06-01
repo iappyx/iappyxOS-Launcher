@@ -1,0 +1,90 @@
+<!-- Built with iappyxOS Launcher -->
+<!doctype html><html><head><title>Rotating Radial Gradient</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#000;overflow:hidden;">
+<canvas id="c" style="position:fixed;inset:0;width:100vw;height:100vh;display:block;"></canvas>
+<script>
+(function(){
+  const c=document.getElementById('c'),ctx=c.getContext('2d');
+  function fit(){c.width=innerWidth;c.height=innerHeight;}
+  fit();
+  window.onresize=fit;
+
+  let angle=0;
+  let visible=true;
+  let pageOffset=0;
+  let tiltX=0,tiltY=0;
+  let smoothTiltX=0,smoothTiltY=0;
+
+  if(window.iappyx){
+    iappyx.onPageOffset=v=>{pageOffset=v||0;};
+    iappyx.onAccelerometer=(ax,ay,az)=>{tiltX=ax;tiltY=ay;};
+    iappyx.onVisibility=v=>{visible=!!v;};
+    iappyx.enableAccelerometer(true);
+  }
+
+  const NUM_RAYS=360;
+
+  function draw(ts){
+    if(!visible){requestAnimationFrame(draw);return;}
+
+    smoothTiltX=smoothTiltX*0.92+tiltX*0.08;
+    smoothTiltY=smoothTiltY*0.92+tiltY*0.08;
+
+    const W=c.width,H=c.height;
+    const cx=W/2+smoothTiltX*8,cy=H/2-smoothTiltY*8;
+    const maxR=Math.sqrt(cx*cx+cy*cy)*1.05+Math.max(W,H)*0.5;
+
+    // Slow rotation speed, slightly influenced by page offset
+    angle+=0.0015+pageOffset*0.001;
+
+    ctx.clearRect(0,0,W,H);
+
+    // Draw conic-like gradient using pie slices
+    const step=Math.PI*2/NUM_RAYS;
+    for(let i=0;i<NUM_RAYS;i++){
+      const a1=angle+i*step;
+      const a2=angle+(i+1)*step;
+      const hue=(i/NUM_RAYS)*360;
+
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,maxR,a1,a2);
+      ctx.closePath();
+
+      // Use a gradient from center to edge for each slice
+      const midA=(a1+a2)*0.5;
+      const gx=cx+Math.cos(midA)*maxR;
+      const gy=cy+Math.sin(midA)*maxR;
+      const grad=ctx.createLinearGradient(cx,cy,gx,gy);
+      grad.addColorStop(0,`hsla(${hue},80%,15%,1)`);
+      grad.addColorStop(0.3,`hsla(${hue},90%,40%,1)`);
+      grad.addColorStop(1,`hsla(${hue},85%,55%,0.85)`);
+
+      ctx.fillStyle=grad;
+      ctx.fill();
+    }
+
+    // Overlay a soft radial vignette for depth
+    const vig=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.85);
+    vig.addColorStop(0,'rgba(0,0,0,0)');
+    vig.addColorStop(0.55,'rgba(0,0,0,0)');
+    vig.addColorStop(1,'rgba(0,0,0,0.55)');
+    ctx.fillStyle=vig;
+    ctx.fillRect(0,0,W,H);
+
+    // Soft bright center glow
+    const glow=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.35);
+    const glowHue=((angle/(Math.PI*2))*360)%360;
+    glow.addColorStop(0,`hsla(${glowHue},100%,98%,0.18)`);
+    glow.addColorStop(0.4,`hsla(${glowHue},90%,70%,0.06)`);
+    glow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=glow;
+    ctx.fillRect(0,0,W,H);
+
+    requestAnimationFrame(draw);
+  }
+
+  requestAnimationFrame(draw);
+})();
+</script>
+</body></html>

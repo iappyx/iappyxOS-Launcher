@@ -1,0 +1,13 @@
+{
+  "page": {
+    "translationX": "0",
+    "alpha":        "max(0, 1 - abs(p))"
+  },
+  "cell": {
+    "translationX": "(cellCol - cols / 2 + 0.5) * w * 0.55 * abs(p)",
+    "translationY": "(cellRow - rows / 2 + 0.5) * h * 0.45 * abs(p)",
+    "rotation":     "sin(cellIndex * 9.59) * 540 * abs(p)",
+    "scaleX":       "1 + 0.1 * abs(p)",
+    "scaleY":       "1 + 0.1 * abs(p)"
+  }
+}

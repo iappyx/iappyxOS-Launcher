@@ -1,0 +1,29 @@
+plugins {
+    id 'com.android.application' version '8.7.3' apply false
+    id 'org.jetbrains.kotlin.android' version '1.9.24' apply false
+}
+
+// After every release build, mirror the freshly-built APK into /bin/
+// at the REPO root (one level up from src/launcher/, two from rootDir).
+// Same convention the sibling iappyxOS project uses — a single canonical
+// path for `adb install` regardless of where in the tree the build ran.
+gradle.projectsEvaluated {
+    def appProject = subprojects.find { it.name == 'app' }
+    if (appProject != null) {
+        appProject.tasks.matching { it.name == 'assembleRelease' }.configureEach { task ->
+            task.doLast {
+                def src = file("${appProject.projectDir}/build/outputs/apk/release/app-release.apk")
+                if (!src.exists()) return
+                // rootDir is src/launcher/ → repo root is two parents up.
+                def destDir = file("${rootDir}/../../bin").canonicalFile
+                destDir.mkdirs()
+                copy {
+                    from src
+                    into destDir
+                    rename { 'iappyxOS-Launcher.apk' }
+                }
+                logger.lifecycle("Copied APK → ${destDir}/iappyxOS-Launcher.apk")
+            }
+        }
+    }
+}

@@ -1,0 +1,674 @@
+<!-- Built with iappyxOS Launcher -->
+<!DOCTYPE html>
+<!--
+  Bridge diagnostics widget.
+
+  Three probe phases:
+    1. Namespace existence (34 rows) — `typeof window.iappyxFoo !== 'undefined'`
+    2. Method counts per namespace (34 rows) — number of @JavascriptInterface
+       methods enumerable on the bridge object
+    3. Functional probes — actually call safe methods and verify shape
+
+  Designed as the regression check for R8 minification + thin ML Kit swaps.
+  Baseline (current non-R8 build) gets captured as the "expected" counts;
+  any drop after a build change pinpoints what got stripped.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="iappyx-widget" content="pause">
+<title>Bridge diagnostics</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{width:100%;height:100%;
+    background:var(--iappyx-surface,#0d0d12);
+    color:var(--iappyx-on-surface,#ECECEC);
+    font:13px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,system-ui,sans-serif;
+    overflow:hidden}
+
+  #root{display:flex;flex-direction:column;height:100%;padding:8px;gap:8px}
+
+  /* Header */
+  .head{display:flex;align-items:center;gap:8px;padding:4px 2px}
+  .title{flex:1;font-weight:600;font-size:14px}
+  .btn{background:var(--iappyx-primary,#7b8fff);color:var(--iappyx-on-primary,#000);
+    border:0;border-radius:6px;padding:6px 12px;font:inherit;font-weight:600;
+    cursor:pointer;flex-shrink:0}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.secondary{background:transparent;color:inherit;
+    border:1px solid var(--iappyx-outline,#2a2a36)}
+
+  /* Summary line — sticky under header */
+  .summary{display:flex;gap:10px;padding:6px 4px;font-size:11px;
+    color:var(--iappyx-on-surface-variant,#8E8E97);
+    border-bottom:1px solid var(--iappyx-outline,#2a2a36)}
+  .summary b{color:var(--iappyx-on-surface,#ECECEC);font-weight:600}
+  .summary .ok{color:#66BB6A}
+  .summary .fail{color:#FF5252}
+
+  /* Body — scrollable */
+  .body{flex:1;overflow-y:auto;overflow-x:hidden}
+
+  /* Sections */
+  .section{margin-bottom:8px}
+  .section-head{display:flex;align-items:center;gap:6px;padding:6px 4px;
+    font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--iappyx-on-surface-variant,#8E8E97);cursor:pointer;user-select:none}
+  .section-head .caret{transition:transform .15s}
+  .section.collapsed .caret{transform:rotate(-90deg)}
+  .section.collapsed .rows{display:none}
+  .section-count{margin-left:auto;font-size:10px;font-weight:500}
+
+  /* Rows */
+  .row{display:flex;align-items:center;gap:8px;padding:5px 6px;
+    border-radius:6px;font-size:12px}
+  .row:hover{background:rgba(255,255,255,.03)}
+  .row .icon{width:14px;text-align:center;flex-shrink:0;font-weight:600}
+  .row .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .detail{font-size:10px;color:var(--iappyx-on-surface-variant,#8E8E97);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%}
+  .row .latency{font-size:10px;color:var(--iappyx-on-surface-variant,#8E8E97);
+    margin-right:4px;flex-shrink:0}
+  .row.pass{--rcolor:#66BB6A}
+  .row.fail{--rcolor:#FF5252}
+  .row.skip{--rcolor:#8E8E97}
+  .row.partial{--rcolor:#FFB74D}
+  .row.pending{--rcolor:#8E8E97}
+  .row.manual{--rcolor:#7b8fff}
+  .row.fail{cursor:pointer}
+  .row .icon{color:var(--rcolor,#8E8E97)}
+
+  .row .test-btn{background:transparent;color:var(--iappyx-primary,#7b8fff);
+    border:1px solid var(--iappyx-primary,#7b8fff);border-radius:4px;
+    padding:2px 8px;font-size:10px;cursor:pointer;flex-shrink:0}
+
+  /* Error sheet (bottom-up) */
+  .sheet{position:fixed;left:0;right:0;bottom:0;
+    background:var(--iappyx-surface-container,#17171f);
+    border-top:1px solid var(--iappyx-outline,#2a2a36);
+    border-radius:14px 14px 0 0;padding:14px;
+    max-height:60vh;overflow-y:auto;
+    transform:translateY(100%);transition:transform .2s;z-index:100}
+  .sheet.open{transform:translateY(0)}
+  .sheet-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .sheet-title{flex:1;font-weight:600;font-size:13px}
+  .sheet-close{background:transparent;color:inherit;border:0;
+    font-size:18px;cursor:pointer;padding:0 6px}
+  .sheet pre{background:#000;padding:10px;border-radius:6px;
+    font:11px/1.4 "SF Mono","Menlo",monospace;
+    white-space:pre-wrap;word-break:break-word;color:#FF5252}
+  .sheet .copy{margin-top:8px}
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="head">
+    <div class="title">Bridge diagnostics</div>
+    <button id="run-all" class="btn">Run all</button>
+  </div>
+  <div class="summary" id="summary">
+    <span><b id="s-pass">0</b><span class="ok"> pass</span></span>
+    <span><b id="s-fail">0</b><span class="fail"> fail</span></span>
+    <span><b id="s-skip">0</b> skip</span>
+    <span><b id="s-manual">0</b> manual</span>
+    <span style="margin-left:auto"><b id="s-total">0</b> total</span>
+  </div>
+  <div class="body" id="body"></div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-head">
+    <div class="sheet-title" id="sheet-title">Error</div>
+    <button class="sheet-close" id="sheet-close">×</button>
+  </div>
+  <pre id="sheet-body"></pre>
+  <button class="btn secondary copy" id="sheet-copy">Copy to clipboard</button>
+</div>
+
+<script>
+'use strict';
+
+// ── Bridge inventory ───────────────────────────────────────────
+// 34 known JS-side bridge names. Anything that should be available
+// on a healthy build. R8 stripping a method shows up as a drop in
+// the per-namespace function count; R8 stripping a whole class shows
+// up as a "namespace missing" failure.
+var NAMESPACES = [
+  'iappyxAlarm', 'iappyxAudio', 'iappyxBiometric', 'iappyxBle',
+  'iappyxBluetooth', 'iappyxCalendar', 'iappyxCamera',
+  'iappyxCapabilities', 'iappyxClipboard', 'iappyxContacts',
+  'iappyxDevice', 'iappyxDownload', 'iappyxHttpClient',
+  'iappyxHttpServer', 'iappyxIntent', 'iappyxLocation',
+  'iappyxMedia', 'iappyxNfc', 'iappyxNotification', 'iappyxNsd',
+  'iappyxScreen', 'iappyxSensor', 'iappyxSmb', 'iappyxSms',
+  'iappyxSqlite', 'iappyxSsh', 'iappyxStorage', 'iappyxTasks',
+  'iappyxTcp', 'iappyxTrigger', 'iappyxTts', 'iappyxUdp',
+  'iappyxVibration', 'iappyxWifiDirect',
+];
+
+// ── Functional probes ──────────────────────────────────────────
+// Curated set of calls that actually exercise the bridge end-to-end.
+// Every method name + signature here is verified against the actual
+// @JavascriptInterface declarations in WidgetHost.java — no guessing.
+//
+// Each entry returns a Promise<{status, detail, error?}>. Status one
+// of: 'pass', 'fail', 'skip', 'partial', 'manual'.
+var FUNCTIONAL_PROBES = [
+  {
+    name: 'device.getPackageName',
+    run: function () {
+      if (!iappyxDevice || !iappyxDevice.getPackageName) return fail('missing');
+      var v = iappyxDevice.getPackageName();
+      return v && v.indexOf('iappyx') >= 0 ? pass(v) : fail('bad value: ' + v);
+    },
+  },
+  {
+    name: 'device.getAppName',
+    run: function () {
+      if (!iappyxDevice || !iappyxDevice.getAppName) return fail('missing');
+      var v = iappyxDevice.getAppName();
+      return v ? pass(v) : fail('returned empty');
+    },
+  },
+  {
+    name: 'device.getDeviceInfo',
+    // Returns JSON: { brand, model, sdk, battery, charging, screenWidth,
+    //                 screenHeight, density, language }. One probe
+    // replaces the 4 broken V1 probes (model/version/screen.W/H).
+    run: function () {
+      if (!iappyxDevice || !iappyxDevice.getDeviceInfo) return fail('missing');
+      var raw = iappyxDevice.getDeviceInfo();
+      try {
+        var d = JSON.parse(raw);
+        if (!d.model || !d.sdk) return fail('missing fields: ' + raw);
+        return pass(d.brand + ' ' + d.model + ' · API ' + d.sdk
+          + ' · ' + d.screenWidth + '×' + d.screenHeight);
+      } catch (e) { return fail('not JSON: ' + raw); }
+    },
+  },
+  {
+    name: 'device.getConnectivity',
+    run: function () {
+      if (!iappyxDevice || !iappyxDevice.getConnectivity) return fail('missing');
+      var v = iappyxDevice.getConnectivity();
+      return v ? pass(v) : fail('returned empty');
+    },
+  },
+  {
+    name: 'device.isDarkMode',
+    run: function () {
+      if (!iappyxDevice || !iappyxDevice.isDarkMode) return fail('missing');
+      try { return pass(String(iappyxDevice.isDarkMode())); }
+      catch (e) { return fail(String(e)); }
+    },
+  },
+  {
+    name: 'screen.isScreenOn',
+    run: function () {
+      if (!iappyxScreen || !iappyxScreen.isScreenOn) return fail('missing');
+      try { return pass(String(iappyxScreen.isScreenOn())); }
+      catch (e) { return fail(String(e)); }
+    },
+  },
+  {
+    name: 'capabilities.get',
+    run: function () {
+      if (!iappyxCapabilities || !iappyxCapabilities.get) return fail('missing');
+      var raw = iappyxCapabilities.get();
+      try {
+        var parsed = JSON.parse(raw);
+        return pass(Object.keys(parsed).length + ' capability flags');
+      } catch (e) { return fail('not JSON: ' + raw); }
+    },
+  },
+  {
+    name: 'storage roundtrip (save/load/remove)',
+    run: function () {
+      if (!iappyxStorage || !iappyxStorage.save) return fail('missing');
+      var key = '__diag_test_' + Date.now();
+      var val = 'diag-' + Math.random().toString(36).slice(2);
+      try {
+        iappyxStorage.save(key, val);
+        var got = iappyxStorage.load(key);
+        iappyxStorage.remove(key);
+        return got === val ? pass('OK')
+          : fail('wrote "' + val + '" got "' + got + '"');
+      } catch (e) { return fail(String(e)); }
+    },
+  },
+  {
+    // SensorBridge has ONE stop() method that stops whatever sensor is
+    // running — not per-sensor stops. Verified from WidgetHost.java.
+    name: 'sensor.startAccelerometer + stop (800ms)',
+    run: function () {
+      return runSensorProbe('startAccelerometer');
+    },
+  },
+  {
+    name: 'sensor.startGyroscope + stop (800ms)',
+    run: function () {
+      return runSensorProbe('startGyroscope');
+    },
+  },
+  {
+    name: 'sensor.startCompass + stop (800ms)',
+    run: function () {
+      return runSensorProbe('startCompass');
+    },
+  },
+  {
+    // vibrate(String msStr) — verified: the param is a String, not a
+    // number. JS will coerce a number, but the canonical call is to
+    // pass a string.
+    name: 'vibration.vibrate("50")',
+    run: function () {
+      if (!iappyxVibration || !iappyxVibration.vibrate) return fail('missing');
+      try {
+        iappyxVibration.vibrate('50');
+        return pass('OK (50ms pulse)');
+      } catch (e) { return fail(String(e)); }
+    },
+  },
+  {
+    // The widget-side HTTP bridge method is request(optionsJson, cbId),
+    // NOT fetch — fetch is the plugin-side method. Verified.
+    name: 'httpClient.request (204 probe)',
+    run: function () {
+      return new Promise(function (resolve) {
+        if (!iappyxHttpClient || !iappyxHttpClient.request) {
+          resolve(fail('missing')); return;
+        }
+        var cbId = '_cb_diag_' + Math.random().toString(36).slice(2);
+        var done = false;
+        var t0 = Date.now();
+        window._iappyxCb[cbId] = function (r) {
+          if (done) return; done = true;
+          delete window._iappyxCb[cbId];
+          if (r && r.status === 204) resolve(pass('HTTP 204 in ' + (Date.now() - t0) + 'ms'));
+          else if (r && r.status > 0) resolve(pass('HTTP ' + r.status));
+          else resolve(fail(r && r.error || 'no response'));
+        };
+        try {
+          iappyxHttpClient.request(JSON.stringify({
+            url: 'https://www.google.com/generate_204', method: 'GET',
+          }), cbId);
+          setTimeout(function () {
+            if (done) return; done = true;
+            delete window._iappyxCb[cbId];
+            resolve(fail('timeout 5s'));
+          }, 5000);
+        } catch (e) {
+          delete window._iappyxCb[cbId];
+          resolve(fail(String(e)));
+        }
+      });
+    },
+  },
+  {
+    // NotificationBridge methods are send(title, body) and cancelAll().
+    // There is no show() — that was my V1 mistake. Verified.
+    name: 'notification.send + cancelAll (transient)',
+    run: function () {
+      if (!iappyxNotification || !iappyxNotification.send) return fail('missing');
+      try {
+        iappyxNotification.send('iappyx diagnostics', 'test');
+        setTimeout(function () {
+          try { iappyxNotification.cancelAll(); } catch (_) {}
+        }, 100);
+        return pass('OK (auto-cancel 100ms)');
+      } catch (e) { return fail(String(e)); }
+    },
+  },
+  {
+    name: 'nfc.isAvailable',
+    run: function () {
+      if (!iappyxNfc || !iappyxNfc.isAvailable) return fail('missing');
+      try { return pass(String(iappyxNfc.isAvailable())); }
+      catch (e) { return fail(String(e)); }
+    },
+  },
+  {
+    name: 'plugins() list',
+    run: function () {
+      return new Promise(function (resolve) {
+        if (typeof iappyxPlugins === 'undefined' || !iappyxPlugins.list) {
+          resolve(skip('plugin system not attached')); return;
+        }
+        var cbId = '_cb_pl_' + Math.random().toString(36).slice(2);
+        var done = false;
+        window._iappyxCb[cbId] = function (r) {
+          if (done) return; done = true;
+          delete window._iappyxCb[cbId];
+          if (r && r.ok) {
+            var ps = r.plugins || [];
+            resolve(pass(ps.length + ' installed: ' +
+              (ps.map(function (p) { return p.id; }).join(',') || '(none)')));
+          } else resolve(fail((r && r.error) || 'unknown'));
+        };
+        try {
+          iappyxPlugins.list(cbId);
+          setTimeout(function () {
+            if (done) return; done = true;
+            delete window._iappyxCb[cbId];
+            resolve(fail('timeout'));
+          }, 2000);
+        } catch (e) {
+          delete window._iappyxCb[cbId]; resolve(fail(String(e)));
+        }
+      });
+    },
+  },
+  // ── Manual probes ────────────────────────────────────────────
+  // Triggered per-row, not by Run all. They mutate user state or
+  // need physical input. All signatures verified.
+  { name: 'camera.scanQR(cbId) (manual)', kind: 'manual',
+    run: function () {
+      var cbId = '_cb_cam_' + Math.random().toString(36).slice(2);
+      // Drop result silently — the probe only verifies that the call
+      // is reachable and the scan UI opens.
+      window._iappyxCb[cbId] = function () { delete window._iappyxCb[cbId]; };
+      try { iappyxCamera.scanQR(cbId); return pass('scanner opened'); }
+      catch (e) { delete window._iappyxCb[cbId]; return fail(String(e)); }
+    }
+  },
+  { name: 'location.getLocation(cbId) (manual)', kind: 'manual',
+    run: function () {
+      return new Promise(function (resolve) {
+        var cbId = '_cb_loc_' + Math.random().toString(36).slice(2);
+        var done = false;
+        window._iappyxCb[cbId] = function (r) {
+          if (done) return; done = true;
+          delete window._iappyxCb[cbId];
+          // Result shape is the bridge's choice; pass-on-any-success.
+          if (r && r.ok) resolve(pass('lat=' + (r.lat || '?') + ' lng=' + (r.lng || '?')));
+          else if (r && (typeof r.latitude === 'number' || typeof r.lat === 'number'))
+            resolve(pass('lat=' + (r.lat || r.latitude) + ' lng=' + (r.lng || r.longitude)));
+          else resolve(fail((r && r.error) || 'denied or empty: ' + JSON.stringify(r)));
+        };
+        try { iappyxLocation.getLocation(cbId);
+          setTimeout(function () {
+            if (done) return; done = true;
+            delete window._iappyxCb[cbId]; resolve(fail('timeout 15s'));
+          }, 15000);
+        } catch (e) { delete window._iappyxCb[cbId]; resolve(fail(String(e))); }
+      });
+    }
+  },
+  { name: 'nfc.startReading(callbackFn) (manual)', kind: 'manual',
+    run: function () {
+      // NfcBridge takes a callback FUNCTION NAME (window-global), not a cbId.
+      // We don't await — the probe just confirms the listener arms.
+      var fn = '__diag_nfc_' + Math.random().toString(36).slice(2);
+      window[fn] = function () { /* drop */ };
+      try {
+        iappyxNfc.startReading('window.' + fn);
+        // Auto-stop after 5s so we don't leave the NFC dispatcher armed.
+        setTimeout(function () {
+          try { iappyxNfc.stopReading(); } catch (_) {}
+          delete window[fn];
+        }, 5000);
+        return pass('listening 5s — hold tag');
+      } catch (e) { delete window[fn]; return fail(String(e)); }
+    }
+  },
+  { name: 'biometric.authenticate(title,subtitle,cbId) (manual)', kind: 'manual',
+    run: function () {
+      var cbId = '_cb_bio_' + Math.random().toString(36).slice(2);
+      window._iappyxCb[cbId] = function () { delete window._iappyxCb[cbId]; };
+      try {
+        iappyxBiometric.authenticate('Diagnostics', 'Verify the bridge works', cbId);
+        return pass('prompt fired');
+      }
+      catch (e) { delete window._iappyxCb[cbId]; return fail(String(e)); }
+    }
+  },
+];
+
+/** Shared helper for the three sensor probes — they only differ by
+ *  start method name. SensorBridge.stop() is universal — one stop
+ *  method covers every sensor. */
+function runSensorProbe(startMethod) {
+  return new Promise(function (resolve) {
+    if (!iappyxSensor || !iappyxSensor[startMethod] || !iappyxSensor.stop) {
+      resolve(fail('missing')); return;
+    }
+    var count = 0;
+    var cb = '__diag_sensor_' + Math.random().toString(36).slice(2);
+    window[cb] = function () { count++; };
+    try {
+      iappyxSensor[startMethod]('window.' + cb);
+      setTimeout(function () {
+        try { iappyxSensor.stop(); } catch (_) {}
+        delete window[cb];
+        if (count > 0) resolve(pass(count + ' samples'));
+        else resolve(partial('no samples in 800ms — sensor unavailable?'));
+      }, 800);
+    } catch (e) { delete window[cb]; resolve(fail(String(e))); }
+  });
+}
+
+// ── Status helpers ─────────────────────────────────────────────
+function pass(detail)    { return { status: 'pass',    detail: detail || 'OK' }; }
+function fail(error)     { return { status: 'fail',    detail: 'ERROR', error: error }; }
+function skip(reason)    { return { status: 'skip',    detail: reason }; }
+function partial(detail) { return { status: 'partial', detail: detail }; }
+
+// ── Section rendering ──────────────────────────────────────────
+var sections = {};
+function makeSection(id, title, rows) {
+  var body = document.getElementById('body');
+  var sec = document.createElement('div');
+  sec.className = 'section';
+  sec.innerHTML = '<div class="section-head">' +
+    '<span class="caret">▾</span><span>' + title + '</span>' +
+    '<span class="section-count" id="count-' + id + '"></span>' +
+    '</div><div class="rows" id="rows-' + id + '"></div>';
+  body.appendChild(sec);
+  sec.querySelector('.section-head').addEventListener('click', function () {
+    sec.classList.toggle('collapsed');
+  });
+  sections[id] = sec;
+  var rowsEl = sec.querySelector('.rows');
+  for (var i = 0; i < rows.length; i++) rowsEl.appendChild(rows[i]);
+}
+
+function rowEl(name, status, detail, latency, kind) {
+  var r = document.createElement('div');
+  r.className = 'row ' + status;
+  var iconText = status === 'pass' ? '✓' :
+                 status === 'fail' ? '✗' :
+                 status === 'skip' ? '−' :
+                 status === 'partial' ? '⚠' :
+                 status === 'manual' ? '⏵' : '·';
+  var inner = '<span class="icon">' + iconText + '</span>' +
+    '<span class="name">' + name + '</span>';
+  if (latency != null) inner += '<span class="latency">' + latency + 'ms</span>';
+  if (detail) inner += '<span class="detail">' + escapeHtml(detail) + '</span>';
+  if (kind === 'manual' && status === 'manual') {
+    inner += '<button class="test-btn">Test</button>';
+  }
+  r.innerHTML = inner;
+  return r;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[<>&"]/g,
+    function (c) { return { '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' }[c]; });
+}
+
+// ── Phase 1 + 2: namespaces & method counts ───────────────────
+function probeNamespaces() {
+  var nsRows = [];
+  var methodRows = [];
+  var s = { pass: 0, fail: 0 };
+  for (var i = 0; i < NAMESPACES.length; i++) {
+    var name = NAMESPACES[i];
+    var obj = window[name];
+    var exists = (typeof obj !== 'undefined' && obj !== null);
+    nsRows.push(rowEl(name, exists ? 'pass' : 'fail',
+      exists ? 'exposed' : 'MISSING — likely R8 stripped'));
+    if (exists) s.pass++; else s.fail++;
+    // Count functions enumerable on the bridge.
+    var count = 0;
+    if (exists) {
+      try {
+        // WebView's @JavascriptInterface objects expose methods as
+        // own properties, but enumeration behaviour varies. Try the
+        // for-in route which works most reliably.
+        for (var k in obj) {
+          if (typeof obj[k] === 'function') count++;
+        }
+      } catch (_) {}
+    }
+    methodRows.push(rowEl(name + ' methods',
+      exists ? (count > 0 ? 'pass' : 'partial') : 'skip',
+      exists ? (count + ' functions detected') : 'namespace missing'));
+  }
+  makeSection('ns',  'Namespaces (' + NAMESPACES.length + ')',  nsRows);
+  makeSection('mc',  'Method counts',  methodRows);
+  return s;
+}
+
+// ── Phase 3: functional probes ────────────────────────────────
+var probeRows = [];
+function buildFunctionalSection() {
+  for (var i = 0; i < FUNCTIONAL_PROBES.length; i++) {
+    var p = FUNCTIONAL_PROBES[i];
+    var status = p.kind === 'manual' ? 'manual' : 'pending';
+    var row = rowEl(p.name, status, p.kind === 'manual' ? 'tap Test' : '…', null, p.kind);
+    probeRows.push({ probe: p, row: row });
+    if (p.kind === 'manual') {
+      var btn = row.querySelector('.test-btn');
+      (function (probe, rowEl) {
+        btn.addEventListener('click', function () { runOne(probe, rowEl); });
+      })(p, row);
+    }
+  }
+  var rows = probeRows.map(function (x) { return x.row; });
+  makeSection('fn', 'Functional probes (' + FUNCTIONAL_PROBES.length + ')', rows);
+}
+
+function runOne(probe, rowEl) {
+  rowEl.className = 'row pending';
+  rowEl.querySelector('.icon').textContent = '·';
+  var det = rowEl.querySelector('.detail');
+  if (det) det.textContent = 'running…';
+  var t0 = Date.now();
+  var done = false;
+  function settle(result) {
+    if (done) return;
+    done = true;
+    var lat = Date.now() - t0;
+    rowEl.className = 'row ' + result.status;
+    rowEl.querySelector('.icon').textContent =
+      result.status === 'pass' ? '✓' :
+      result.status === 'fail' ? '✗' :
+      result.status === 'skip' ? '−' :
+      result.status === 'partial' ? '⚠' : '·';
+    var latEl = rowEl.querySelector('.latency');
+    if (!latEl) {
+      latEl = document.createElement('span');
+      latEl.className = 'latency';
+      var detEl = rowEl.querySelector('.detail');
+      rowEl.insertBefore(latEl, detEl || null);
+    }
+    latEl.textContent = lat + 'ms';
+    var d = rowEl.querySelector('.detail');
+    if (d) d.textContent = result.detail || '';
+    if (result.status === 'fail' && result.error) {
+      rowEl.dataset.error = String(result.error);
+      rowEl.addEventListener('click', function () {
+        openSheet(probe.name, result.error);
+      });
+    }
+    updateSummary();
+  }
+  try {
+    var r = probe.run();
+    if (r && typeof r.then === 'function') {
+      r.then(settle, function (e) { settle(fail(String(e))); });
+    } else {
+      settle(r);
+    }
+  } catch (e) {
+    settle(fail(String(e)));
+  }
+}
+
+function runAllAuto() {
+  document.getElementById('run-all').disabled = true;
+  var idx = 0;
+  function next() {
+    if (idx >= probeRows.length) {
+      document.getElementById('run-all').disabled = false;
+      return;
+    }
+    var pr = probeRows[idx++];
+    if (pr.probe.kind === 'manual') { next(); return; }
+    runOne(pr.probe, pr.row);
+    // Sensor probes need exclusive time; serialise everything.
+    setTimeout(next, 50);
+  }
+  next();
+}
+
+// ── Summary tally ──────────────────────────────────────────────
+function updateSummary() {
+  var counts = { pass: 0, fail: 0, skip: 0, manual: 0, partial: 0 };
+  var rows = document.querySelectorAll('.row');
+  for (var i = 0; i < rows.length; i++) {
+    var cls = rows[i].className;
+    if (cls.indexOf('pass') >= 0) counts.pass++;
+    else if (cls.indexOf('fail') >= 0) counts.fail++;
+    else if (cls.indexOf('skip') >= 0) counts.skip++;
+    else if (cls.indexOf('manual') >= 0) counts.manual++;
+    else if (cls.indexOf('partial') >= 0) counts.partial++;
+  }
+  document.getElementById('s-pass').textContent = counts.pass;
+  document.getElementById('s-fail').textContent = counts.fail;
+  document.getElementById('s-skip').textContent = counts.skip + counts.partial;
+  document.getElementById('s-manual').textContent = counts.manual;
+  document.getElementById('s-total').textContent = rows.length;
+}
+
+// ── Error sheet ───────────────────────────────────────────────
+function openSheet(title, error) {
+  document.getElementById('sheet-title').textContent = title;
+  document.getElementById('sheet-body').textContent = error || '(no message)';
+  document.getElementById('sheet').classList.add('open');
+}
+document.getElementById('sheet-close').addEventListener('click', function () {
+  document.getElementById('sheet').classList.remove('open');
+});
+document.getElementById('sheet-copy').addEventListener('click', function () {
+  try {
+    var txt = document.getElementById('sheet-title').textContent + '\n\n' +
+              document.getElementById('sheet-body').textContent;
+    if (window.iappyx && iappyx.clipboard && iappyx.clipboard.setText) {
+      iappyx.clipboard.setText(txt);
+    } else if (iappyxClipboard && iappyxClipboard.setText) {
+      iappyxClipboard.setText(txt);
+    }
+    document.getElementById('sheet-copy').textContent = 'Copied!';
+    setTimeout(function () {
+      document.getElementById('sheet-copy').textContent = 'Copy to clipboard';
+    }, 1200);
+  } catch (_) {}
+});
+
+// ── Boot ──────────────────────────────────────────────────────
+window._iappyxCb = window._iappyxCb || {};
+window.addEventListener('load', function () {
+  // Small delay — the shim is injected at document_start but plugin
+  // bridges attach later in some flows.
+  setTimeout(function () {
+    probeNamespaces();
+    buildFunctionalSection();
+    updateSummary();
+  }, 200);
+});
+
+document.getElementById('run-all').addEventListener('click', runAllAuto);
+</script>
+</body>
+</html>

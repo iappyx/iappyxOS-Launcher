@@ -1,0 +1,527 @@
+<!-- Built with iappyxOS Launcher -->
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="iappyx-widget" content="pause, refresh=600s">
+<title>Weather</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*:focus{outline:none}
+button{-webkit-appearance:none;background:none;border:none;color:inherit;font:inherit}
+html,body{width:100%;height:100%;font-family:-apple-system,Roboto,sans-serif;overflow:hidden}
+
+body{
+  background:linear-gradient(135deg,#f7971e,#ffd200);
+  transition:background 1.5s ease;
+  border-radius:16px;
+}
+
+#root{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:4%;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Glassmorphism overlay */
+#card{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.25);
+  padding:6% 5%;
+  position:relative;
+  gap:2%;
+}
+
+/* Loading / error */
+#status{
+  font-size:clamp(11px,3.5vmin,16px);
+  color:rgba(255,255,255,0.85);
+  text-align:center;
+  line-height:1.5;
+}
+
+/* Weather icon */
+#icon{
+  font-size:clamp(28px,12vmin,72px);
+  line-height:1;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+  animation:float 4s ease-in-out infinite;
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6%)}
+}
+
+/* Temperature */
+#temp{
+  font-size:clamp(32px,18vmin,96px);
+  font-weight:700;
+  color:#fff;
+  letter-spacing:-1px;
+  line-height:1;
+  text-shadow:0 2px 12px rgba(0,0,0,0.2);
+}
+#temp sup{
+  font-size:0.4em;
+  font-weight:400;
+  vertical-align:super;
+  opacity:0.85;
+}
+
+/* Condition text */
+#condition{
+  font-size:clamp(11px,4vmin,20px);
+  font-weight:500;
+  color:rgba(255,255,255,0.92);
+  text-transform:capitalize;
+  text-shadow:0 1px 4px rgba(0,0,0,0.15);
+  text-align:center;
+}
+
+/* City */
+#city{
+  font-size:clamp(10px,3.2vmin,16px);
+  color:rgba(255,255,255,0.75);
+  font-weight:400;
+  letter-spacing:0.5px;
+  text-align:center;
+}
+
+/* Detail row */
+#details{
+  display:flex;
+  gap:4%;
+  justify-content:center;
+  width:100%;
+  margin-top:1%;
+}
+.detail{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  background:rgba(255,255,255,0.1);
+  border-radius:8px;
+  padding:3% 4%;
+  flex:1;
+}
+.detail-icon{font-size:clamp(10px,4vmin,20px)}
+.detail-val{
+  font-size:clamp(9px,3vmin,14px);
+  font-weight:600;
+  color:#fff;
+}
+.detail-lbl{
+  font-size:clamp(7px,2.3vmin,11px);
+  color:rgba(255,255,255,0.65);
+  text-transform:uppercase;
+  letter-spacing:0.4px;
+}
+
+/* Feels like row */
+#feels{
+  font-size:clamp(8px,2.8vmin,13px);
+  color:rgba(255,255,255,0.68);
+  text-align:center;
+}
+
+/* Refresh button */
+#refreshBtn{
+  position:absolute;
+  top:6%;right:6%;
+  font-size:clamp(12px,4vmin,18px);
+  opacity:0.65;
+  cursor:pointer;
+  transition:opacity 0.2s,transform 0.4s;
+  touch-action:manipulation;
+}
+#refreshBtn:active{opacity:1;transform:rotate(180deg)}
+#refreshBtn.spinning{animation:spin 1s linear}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Shimmer on load */
+.shimmer{
+  background:linear-gradient(90deg,rgba(255,255,255,0.1) 25%,rgba(255,255,255,0.25) 50%,rgba(255,255,255,0.1) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:6px;
+  height:1em;width:60%;
+}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* Rain animation overlay */
+#rain{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;border-radius:12px;opacity:0}
+.raindrop{
+  position:absolute;top:-8%;
+  width:1.5px;background:rgba(255,255,255,0.4);
+  animation:fall linear infinite;
+  border-radius:2px;
+}
+@keyframes fall{from{transform:translateY(0)}to{transform:translateY(115%)}}
+
+/* Snow */
+.snowflake{
+  position:absolute;top:-8%;
+  font-size:clamp(8px,2.5vmin,14px);
+  animation:snowfall linear infinite;
+  opacity:0.7;
+}
+@keyframes snowfall{
+  0%{transform:translateY(0) rotate(0deg)}
+  100%{transform:translateY(115%) rotate(360deg)}
+}
+
+/* Cloud puffs */
+.cloud-puff{
+  position:absolute;
+  background:rgba(255,255,255,0.08);
+  border-radius:50%;
+  animation:drift linear infinite;
+}
+@keyframes drift{from{transform:translateX(-120%)}to{transform:translateX(120vw)}}
+</style>
+</head><body>
+<div id="root">
+  <div id="card">
+    <button id="refreshBtn" title="Refresh">↻</button>
+    <div id="rain"></div>
+    <div id="status">Locating…</div>
+    <div id="icon" style="display:none"></div>
+    <div id="temp" style="display:none"></div>
+    <div id="condition" style="display:none"></div>
+    <div id="city" style="display:none"></div>
+    <div id="details" style="display:none"></div>
+    <div id="feels" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+/* ─── Bridge init ─── */
+function _initBridge(){if(typeof iappyx==='undefined'){setTimeout(_initBridge,50);return;}onReady();}
+window.addEventListener('load',function(){setTimeout(_initBridge,200);});
+
+/* ─── State ─── */
+var appState = JSON.parse(iappyx && iappyx.load ? (iappyx.load('wx_state')||'{}') : '{}');
+var refreshTimer = null;
+var isNight = false;
+
+/* ─── Weather condition map ─── */
+var CONDITIONS = {
+  // code ranges → {icon, label, gradient, type}
+  // WMO weather codes used by open-meteo
+  0:  {icon:'☀️', label:'Clear sky',      grad:'#f7971e,#ffd200',        type:'sunny'},
+  1:  {icon:'🌤️', label:'Mainly clear',   grad:'#f7971e,#ffd200',        type:'sunny'},
+  2:  {icon:'⛅', label:'Partly cloudy',  grad:'#667eea,#764ba2',        type:'cloudy'},
+  3:  {icon:'☁️', label:'Overcast',       grad:'#536976,#292e49',        type:'cloudy'},
+  45: {icon:'🌫️', label:'Foggy',          grad:'#757f9a,#d7dde8',        type:'cloudy'},
+  48: {icon:'🌫️', label:'Icy fog',        grad:'#757f9a,#d7dde8',        type:'cloudy'},
+  51: {icon:'🌦️', label:'Light drizzle',  grad:'#4b6cb7,#182848',        type:'rain'},
+  53: {icon:'🌦️', label:'Drizzle',        grad:'#4b6cb7,#182848',        type:'rain'},
+  55: {icon:'🌧️', label:'Heavy drizzle',  grad:'#373b44,#4286f4',        type:'rain'},
+  56: {icon:'🌨️', label:'Freezing drizzle',grad:'#757f9a,#d7dde8',       type:'snow'},
+  57: {icon:'🌨️', label:'Heavy freeze drizzle',grad:'#757f9a,#d7dde8',   type:'snow'},
+  61: {icon:'🌧️', label:'Light rain',     grad:'#4b6cb7,#182848',        type:'rain'},
+  63: {icon:'🌧️', label:'Rain',           grad:'#373b44,#4286f4',        type:'rain'},
+  65: {icon:'🌧️', label:'Heavy rain',     grad:'#1c1c1c,#4286f4',        type:'rain'},
+  66: {icon:'🌨️', label:'Freezing rain',  grad:'#757f9a,#d7dde8',        type:'snow'},
+  67: {icon:'🌨️', label:'Heavy freeze rain',grad:'#757f9a,#d7dde8',      type:'snow'},
+  71: {icon:'❄️', label:'Light snow',     grad:'#8e9eab,#eef2f3',        type:'snow'},
+  73: {icon:'❄️', label:'Snow',           grad:'#8e9eab,#eef2f3',        type:'snow'},
+  75: {icon:'❄️', label:'Heavy snow',     grad:'#616161,#9bc5c3',        type:'snow'},
+  77: {icon:'🌨️', label:'Snow grains',    grad:'#8e9eab,#eef2f3',        type:'snow'},
+  80: {icon:'🌦️', label:'Light showers',  grad:'#4b6cb7,#182848',        type:'rain'},
+  81: {icon:'🌧️', label:'Rain showers',   grad:'#373b44,#4286f4',        type:'rain'},
+  82: {icon:'⛈️', label:'Heavy showers',  grad:'#1c1c1c,#4286f4',        type:'storm'},
+  85: {icon:'🌨️', label:'Snow showers',   grad:'#8e9eab,#eef2f3',        type:'snow'},
+  86: {icon:'🌨️', label:'Heavy snow showers',grad:'#616161,#9bc5c3',     type:'snow'},
+  95: {icon:'⛈️', label:'Thunderstorm',   grad:'#0f0c29,#302b63',        type:'storm'},
+  96: {icon:'⛈️', label:'Storm w/ hail',  grad:'#0f0c29,#302b63',        type:'storm'},
+  99: {icon:'⛈️', label:'Storm heavy hail',grad:'#0f0c29,#302b63',       type:'storm'}
+};
+
+function getConditionInfo(code){
+  return CONDITIONS[code] || {icon:'🌡️', label:'Weather', grad:'#4facfe,#00f2fe', type:'default'};
+}
+
+function getNightGradient(type){
+  if(type==='storm') return '#0f0c29,#302b63';
+  if(type==='snow')  return '#1a1a2e,#5c85d6';
+  return '#0f0c29,#302b63';
+}
+
+/* ─── Background / particle effects ─── */
+function applyGradient(grad, type){
+  document.body.style.background = 'linear-gradient(135deg,' + grad + ')';
+  clearParticles();
+  if(type==='rain' || type==='storm') spawnRain(type==='storm' ? 40 : 22);
+  if(type==='snow') spawnSnow(18);
+  if(type==='cloudy') spawnClouds();
+}
+
+function clearParticles(){
+  var rain = document.getElementById('rain');
+  rain.innerHTML='';
+  rain.style.opacity='0';
+  document.querySelectorAll('.cloud-puff').forEach(function(el){el.remove();});
+}
+
+function spawnRain(count){
+  var rain = document.getElementById('rain');
+  rain.style.opacity='1';
+  for(var i=0;i<count;i++){
+    var d = document.createElement('div');
+    d.className='raindrop';
+    d.style.left = (Math.random()*100)+'%';
+    d.style.height = (clamp(Math.random()*10+8,8,20))+'%';
+    d.style.opacity = 0.3+Math.random()*0.5;
+    d.style.animationDuration = (0.5+Math.random()*0.6)+'s';
+    d.style.animationDelay = (Math.random()*1.5)+'s';
+    rain.appendChild(d);
+  }
+}
+
+function spawnSnow(count){
+  var rain = document.getElementById('rain');
+  rain.style.opacity='1';
+  var flakes=['❄','❅','❆','*','✦'];
+  for(var i=0;i<count;i++){
+    var d = document.createElement('div');
+    d.className='snowflake';
+    d.textContent = flakes[Math.floor(Math.random()*flakes.length)];
+    d.style.left = (Math.random()*100)+'%';
+    d.style.animationDuration = (3+Math.random()*4)+'s';
+    d.style.animationDelay = (Math.random()*4)+'s';
+    rain.appendChild(d);
+  }
+}
+
+function spawnClouds(){
+  var card = document.getElementById('card');
+  for(var i=0;i<3;i++){
+    var d = document.createElement('div');
+    d.className='cloud-puff';
+    var size = clamp(40+Math.random()*60,40,100);
+    d.style.width = size+'px';
+    d.style.height = (size*0.6)+'px';
+    d.style.top = (10+Math.random()*70)+'%';
+    d.style.animationDuration = (20+Math.random()*20)+'s';
+    d.style.animationDelay = (Math.random()*10)+'s';
+    card.appendChild(d);
+  }
+}
+
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+
+/* ─── Show/hide elements ─── */
+function show(id){document.getElementById(id).style.display='';}
+function hide(id){document.getElementById(id).style.display='none';}
+function setText(id,t){document.getElementById(id).textContent=t;}
+
+function showLoading(msg){
+  setText('status', msg||'Locating…');
+  show('status');
+  hide('icon'); hide('temp'); hide('condition'); hide('city'); hide('details'); hide('feels');
+}
+
+function showError(msg){
+  setText('status','⚠️ '+msg);
+  show('status');
+  hide('icon'); hide('temp'); hide('condition'); hide('city'); hide('details'); hide('feels');
+}
+
+function showWeather(data){
+  hide('status');
+  show('icon'); show('temp'); show('condition'); show('city'); show('details'); show('feels');
+
+  var info = getConditionInfo(data.code);
+
+  /* Check night */
+  var h = new Date().getHours();
+  isNight = (h>=20 || h<6);
+
+  var grad = isNight ? getNightGradient(info.type) : info.grad;
+  /* Swap sunny night → deep blue */
+  if(isNight && info.type==='sunny'){
+    document.getElementById('icon').textContent='🌙';
+    grad='#0f0c29,#302b63';
+  } else {
+    document.getElementById('icon').textContent=info.icon;
+  }
+
+  applyGradient(grad, isNight && info.type==='sunny' ? 'night' : info.type);
+
+  /* Temperature */
+  document.getElementById('temp').innerHTML = Math.round(data.temp)+'<sup>°C</sup>';
+
+  setText('condition', info.label);
+  setText('city', data.city||'');
+
+  /* Details */
+  document.getElementById('details').innerHTML =
+    '<div class="detail"><span class="detail-icon">💧</span><span class="detail-val">'+Math.round(data.humidity)+'%</span><span class="detail-lbl">Humidity</span></div>'+
+    '<div class="detail"><span class="detail-icon">💨</span><span class="detail-val">'+Math.round(data.wind)+' km/h</span><span class="detail-lbl">Wind</span></div>';
+
+  setText('feels', 'Feels like '+Math.round(data.feelsLike)+'°C');
+}
+
+/* ─── Reverse geocode (OpenStreetMap Nominatim, no key needed) ─── */
+function getCityName(lat,lon,callback){
+  var url='https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json&zoom=10';
+  var cbId='geo_'+Date.now();
+  window._iappyxCb = window._iappyxCb||{};
+  var timer = setTimeout(function(){
+    delete window._iappyxCb[cbId];
+    callback('');
+  },8000);
+  window._iappyxCb[cbId]=function(r){
+    clearTimeout(timer);
+    if(!r.ok){callback('');return;}
+    try{
+      var j=JSON.parse(r.body);
+      var addr=j.address||{};
+      var city=addr.city||addr.town||addr.village||addr.county||addr.state||'';
+      callback(city);
+    }catch(e){callback('');}
+  };
+  iappyx.httpClient.request(JSON.stringify({
+    url:url,
+    method:'GET',
+    headers:{'User-Agent':'iappyxOS-WeatherWidget/1.0'},
+    timeout:8000
+  }), cbId);
+}
+
+/* ─── Fetch weather from open-meteo (free, no key) ─── */
+function fetchWeather(lat,lon,city){
+  showLoading('Getting weather…');
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+    '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weathercode,windspeed_10m'+
+    '&windspeed_unit=kmh&timezone=auto';
+
+  var cbId='wx_'+Date.now();
+  window._iappyxCb = window._iappyxCb||{};
+  var timer=setTimeout(function(){
+    delete window._iappyxCb[cbId];
+    showError('Weather request timed out');
+  },15000);
+
+  window._iappyxCb[cbId]=function(r){
+    clearTimeout(timer);
+    if(!r.ok){
+      showError('Weather fetch failed: '+(r.error||r.status));
+      return;
+    }
+    try{
+      var j=JSON.parse(r.body);
+      var cur=j.current;
+      var data={
+        temp:    cur.temperature_2m,
+        feelsLike: cur.apparent_temperature,
+        humidity:  cur.relative_humidity_2m,
+        wind:    cur.windspeed_10m,
+        code:    cur.weathercode,
+        city:    city
+      };
+      /* cache */
+      appState.last = data;
+      appState.ts   = Date.now();
+      iappyx.save('wx_state', JSON.stringify(appState));
+      showWeather(data);
+    }catch(e){
+      showError('Bad weather data');
+    }
+  };
+
+  iappyx.httpClient.request(JSON.stringify({
+    url:url,
+    method:'GET',
+    timeout:15000
+  }), cbId);
+}
+
+/* ─── Get location then weather ─── */
+function refresh(){
+  var btn=document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  setTimeout(function(){btn.classList.remove('spinning');},1000);
+
+  showLoading('Locating…');
+
+  var cbId='loc_'+Date.now();
+  window._iappyxCb=window._iappyxCb||{};
+  var locTimer=setTimeout(function(){
+    delete window._iappyxCb[cbId];
+    /* Try cached data */
+    if(appState.last && appState.ts && (Date.now()-appState.ts)<3600000){
+      showWeather(appState.last);
+    } else {
+      showError('Location unavailable');
+    }
+  },20000);
+
+  window._iappyxCb[cbId]=function(r){
+    clearTimeout(locTimer);
+    if(!r.ok){
+      if(appState.last){showWeather(appState.last);}
+      else{showError('Location: '+(r.error||'denied'));}
+      return;
+    }
+    var lat=r.lat, lon=r.lon;
+    /* Get city name first, then weather */
+    getCityName(lat,lon,function(city){
+      fetchWeather(lat,lon,city);
+    });
+  };
+
+  iappyx.location.getLocation(cbId);
+}
+
+/* ─── Auto refresh every 10 min ─── */
+function scheduleRefresh(){
+  if(refreshTimer) clearInterval(refreshTimer);
+  refreshTimer=setInterval(function(){refresh();},600000);
+}
+
+/* ─── Ready ─── */
+function onReady(){
+  appState = JSON.parse(iappyx.load('wx_state')||'{}');
+
+  /* Show cached data instantly while loading fresh */
+  if(appState.last){
+    showWeather(appState.last);
+  }
+
+  /* Wire up refresh button */
+  document.getElementById('refreshBtn').addEventListener('click',function(){
+    refresh();
+  });
+
+  /* Refresh on visibility */
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden){
+      var age = appState.ts ? Date.now()-appState.ts : Infinity;
+      if(age > 300000) refresh();
+    }
+  });
+
+  refresh();
+  scheduleRefresh();
+}
+
+function _initBridge(){
+  if(typeof iappyx==='undefined'){setTimeout(_initBridge,50);return;}
+  onReady();
+}
+window.addEventListener('load',function(){setTimeout(_initBridge,200);});
+</script>
+</body></html>

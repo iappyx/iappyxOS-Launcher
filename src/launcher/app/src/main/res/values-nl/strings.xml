@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nederlandse vertaling van iappyxOS Launcher.
+    Stijl: informeel ("je"), Android-conventies (Startscherm / Instellingen
+    / Pictogramstijl / Achtergrond / Overgang). Tech-termen die in NL
+    standaard onvertaald blijven (widget, trigger, geofence, profiel, QR,
+    WiFi, Android Auto) houden hun Engelse vorm.
+-->
+<resources>
+    <!-- App-naam blijft onvertaald — merk. -->
+    <string name="app_name">iappyxOS Launcher</string>
+    <string name="wallpaper_label">iappyxOS Live</string>
+    <string name="wallpaper_description">Programmeerbare HTML-achtergronden — kies de actieve in iappyxOS Launcher-instellingen.</string>
+
+    <!-- ── Settings ─────────────────────────────────────────────────── -->
+    <string name="settings_title">Instellingen</string>
+
+    <string name="settings_ai_section">AI</string>
+    <string name="settings_ai_key_label">Anthropic API-sleutel</string>
+    <string name="settings_ai_key_hint">Aanmaken op console.anthropic.com. Wordt lokaal opgeslagen, hardware-versleuteld.</string>
+    <string name="settings_ai_key_placeholder">sk-ant-…</string>
+    <string name="settings_ai_key_remove">Sleutel verwijderen</string>
+    <string name="settings_ai_model_label">Model</string>
+    <string name="settings_ai_model_placeholder">claude-sonnet-4-6</string>
+    <string name="settings_github_token_label">GitHub-token</string>
+    <string name="settings_github_token_hint">Optioneel. Nodig om je widgets, achtergronden of overgangen in te dienen bij de Showcase. Maak een classic Personal Access Token aan op github.com/settings/tokens met de scope public_repo.</string>
+    <string name="settings_github_token_placeholder">ghp_…</string>
+    <string name="settings_github_token_remove">Token verwijderen</string>
+    <string name="settings_save_credentials">Inloggegevens opslaan</string>
+
+    <string name="settings_home_layout_section">Startscherm-indeling</string>
+    <string name="settings_grid_preview_default">5 × 6 raster · dock 5</string>
+    <string name="settings_grid_columns">Kolommen</string>
+    <string name="settings_grid_rows">Rijen</string>
+    <string name="settings_grid_dock_slots">Dock-vakken</string>
+    <string name="settings_grid_apply">Raster toepassen</string>
+    <string name="settings_dock_labels_label">Labels in dock tonen</string>
+    <string name="settings_dock_labels_hint">Toon de naam van de app onder elk dock-icoon</string>
+    <string name="settings_long_press_menu_label">Lang indrukken toont menu</string>
+    <string name="settings_long_press_menu_hint">Uit: lang indrukken springt direct naar bewerken</string>
+    <string name="settings_allow_rotation_label">Rotatie toestaan</string>
+    <string name="settings_allow_rotation_hint">Volg het apparaat als je het draait</string>
+    <string name="settings_dominant_orientation_label">Dominante oriëntatie</string>
+    <string name="settings_dominant_orientation_hint">De oriëntatie waarin je je raster ontwerpt</string>
+    <string name="settings_notification_badges_label">Meldingsbadges</string>
+    <string name="settings_notification_badges_hint">Toon ongelezen aantallen op app-iconen (vereist Meldingstoegang)</string>
+    <string name="settings_notification_badges_grant">Meldingstoegang verlenen ›</string>
+    <string name="settings_page_transition_label">Pagina-overgang</string>
+    <string name="settings_page_transition_default">Horizontale veeg</string>
+    <string name="settings_icon_style_label">Pictogramstijl</string>
+    <string name="settings_icon_style_none">Geen</string>
+    <string name="settings_live_wallpaper_label">Live achtergrond</string>
+    <string name="settings_live_wallpaper_set_prompt">Tik om iappyxOS Live in te stellen</string>
+    <string name="settings_wallpaper_toolkit_section">Achtergrond-toolkit</string>
+    <string name="settings_wallpaper_location_label">Locatie</string>
+    <string name="settings_wallpaper_calendar_label">Agenda (lezen)</string>
+    <string name="settings_wallpaper_perm_grant_prompt">Tik om toe te staan</string>
+
+    <string name="settings_profiles_label">Profielen</string>
+    <string name="settings_profiles_default_subtitle">Maak een snapshot van je startscherm en wissel automatisch op locatie, WiFi of Android Auto</string>
+
+    <string name="settings_backup_section">Back-up &amp; herstel</string>
+    <string name="settings_backup_section_hint">Sla je startscherm-indeling, gegenereerde widgets, achtergronden en overgangen op in één .iappyxbackup-bestand. Handig om over te zetten naar een ander apparaat.</string>
+    <string name="settings_backup_export_label">Back-up exporteren</string>
+    <string name="settings_backup_export_default_subtitle">Sla alles op in een bestand</string>
+    <string name="settings_backup_import_label">Back-up importeren</string>
+    <string name="settings_backup_import_hint">Herstellen vanuit een eerder opgeslagen bestand</string>
+    <string name="settings_backup_cleanup_label">Ongebruikte widget-data opruimen</string>
+    <string name="settings_backup_cleanup_hint">Maak ruimte vrij van widgets die niet meer bestaan</string>
+
+    <string name="chevron_right">›</string>
+    <string name="stepper_minus">−</string>
+    <string name="stepper_plus">+</string>
+
+    <!-- ── Common buttons / toasts ─────────────────────────────────── -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Annuleren</string>
+    <string name="action_remove">Verwijderen</string>
+    <string name="action_delete">Verwijderen</string>
+    <string name="action_apply">Toepassen</string>
+    <string name="action_import">Importeren</string>
+    <string name="state_granted">Toegestaan</string>
+    <string name="state_already_granted">Al toegestaan</string>
+    <string name="toast_saved">Opgeslagen</string>
+
+    <!-- Settings — credentialdialogen / toasts -->
+    <string name="settings_remove_api_key_title">API-sleutel verwijderen?</string>
+    <string name="settings_remove_api_key_message">De AI-chat van de launcher werkt niet meer totdat je opnieuw een sleutel toevoegt. De handmatige AI-flow blijft werken zonder sleutel.</string>
+    <string name="settings_api_key_removed_toast">API-sleutel verwijderd</string>
+    <string name="settings_remove_github_token_title">GitHub-token verwijderen?</string>
+    <string name="settings_remove_github_token_message">Het indienen van widgets / achtergronden / overgangen bij de Showcase werkt niet meer totdat je opnieuw een token toevoegt. Bladeren door de showcase blijft werken zonder token.</string>
+    <string name="settings_github_token_removed_toast">GitHub-token verwijderd</string>
+
+    <string name="settings_profiles_saved_active_format">%1$d opgeslagen · actief: %2$s</string>
+    <string name="settings_profiles_saved_no_active_format">%1$d opgeslagen · geen actief profiel</string>
+
+    <string name="settings_backup_last_format">Laatste back-up: %1$s</string>
+
+    <string name="settings_cleanup_none_subtitle">Geen ongebruikte widget-data om op te ruimen</string>
+    <string name="settings_cleanup_some_format">%1$d ongebruikte map(pen) · %2$s</string>
+    <string name="settings_cleanup_nothing_toast">Niets om op te ruimen</string>
+    <string name="settings_cleanup_dialog_title">Widget-data opruimen?</string>
+    <string name="settings_cleanup_dialog_message">%1$d map(pen) gevonden, in totaal %2$s, waar geen startscherm-widget meer naar verwijst.\n\nDeze zijn achtergebleven van eerder verwijderde widgets of asset-widgets die niet meer bestaan. Verwijderen is veilig — geen actieve widget wordt geraakt — maar hun opgeslagen bestandsdata (indien aanwezig) is dan weg.\n\nDit kan niet ongedaan worden gemaakt.</string>
+    <string name="settings_cleanup_done_toast_format">%1$d map(pen) opgeruimd (%2$s)</string>
+
+    <string name="settings_backup_export_include_key">API-sleutel meenemen (let op: opgeslagen als platte tekst in de back-up)</string>
+    <string name="settings_backup_export_include_runtime">Widget-runtime-data meenemen (tellers, opgeslagen waarden, …)</string>
+    <string name="settings_backup_export_dialog_title">Back-up exporteren</string>
+    <string name="settings_backup_export_dialog_message">Slaat je startscherm-indeling, gegenereerde widgets, achtergronden en overgangen op in één .iappyxbackup-bestand dat je naar een ander apparaat kunt verplaatsen.</string>
+    <string name="settings_backup_choose_location">Kies locatie</string>
+    <string name="settings_backup_exporting_title">Back-up exporteren</string>
+    <string name="settings_backup_writing_message">Bestand schrijven…</string>
+    <string name="settings_backup_cant_open_write">Kon bestand niet openen om te schrijven</string>
+    <string name="settings_backup_export_done_toast_format">Geëxporteerd (%1$d widgets, %2$d achtergronden)</string>
+    <string name="settings_backup_export_failed_title">Export mislukt</string>
+
+    <string name="settings_backup_reading_title">Back-up lezen</string>
+    <string name="settings_backup_cant_open">Kon bestand niet openen</string>
+    <string name="settings_backup_cant_import_title">Kan niet importeren</string>
+    <string name="settings_backup_unknown_error">Onbekende fout</string>
+    <string name="settings_backup_cant_read_title">Kan back-up niet lezen</string>
+    <string name="settings_backup_summary_header_format">Back-up van %1$s · %2$s\n\n</string>
+    <string name="settings_backup_unknown_device">onbekend apparaat</string>
+    <string name="settings_backup_unknown_date">onbekende datum</string>
+    <string name="settings_backup_summary_widgets_format">• %1$d widget(s)\n</string>
+    <string name="settings_backup_summary_wallpapers_format">• %1$d achtergrond(en)\n</string>
+    <string name="settings_backup_summary_transitions_format">• %1$d overgang(en)\n</string>
+    <string name="settings_backup_summary_icon_filters_format">• %1$d pictogramstijl(en)\n</string>
+    <string name="settings_backup_summary_profiles_format">• %1$d profiel(en)\n</string>
+    <string name="settings_backup_summary_home_format">• Startscherm-indeling (%1$d pagina(\'s))\n</string>
+    <string name="settings_backup_summary_includes_key">• Bevat API-sleutel\n</string>
+    <string name="settings_backup_summary_includes_runtime">• Bevat widget-data\n</string>
+    <string name="settings_backup_summary_missing_header_format">\n⚠ %1$d app(s) in deze back-up zijn niet geïnstalleerd:\n</string>
+    <string name="settings_backup_summary_missing_item_format">  - %1$s\n</string>
+    <string name="settings_backup_summary_missing_more_format">  …en nog %1$d meer\n</string>
+    <string name="settings_backup_summary_missing_footer">Hun iconen verschijnen zodra je de ontbrekende apps installeert.</string>
+    <string name="settings_backup_import_mode_merge">Samenvoegen — behoud mijn huidige opzet, voeg toe wat in de back-up zit</string>
+    <string name="settings_backup_import_mode_replace">Vervangen — wis mijn huidige opzet en herstel exact de back-up</string>
+    <string name="settings_backup_import_dialog_title">Back-up importeren</string>
+    <string name="settings_backup_restoring_title">Herstellen</string>
+    <string name="settings_backup_applying_message">Back-up toepassen…</string>
+    <string name="settings_backup_restored_title">Hersteld</string>
+    <string name="settings_backup_restored_message">Back-up succesvol geïmporteerd. Tik op OK om terug te gaan — de launcher pikt de wijzigingen op.</string>
+    <string name="settings_backup_restore_failed_title">Herstellen mislukt</string>
+
+    <string name="settings_orientation_portrait">Staand</string>
+    <string name="settings_orientation_landscape">Liggend</string>
+
+    <string name="settings_wallpaper_fallback_clock">Klok</string>
+    <string name="settings_wallpaper_fallback_rotating_radial">Roterende radiale gradiënt</string>
+
+    <string name="settings_grid_preview_format">%1$d × %2$d raster · dock %3$d</string>
+    <string name="settings_grid_no_changes_toast">Geen wijzigingen</string>
+    <string name="settings_grid_shrinking_title">Raster verkleinen</string>
+    <string name="settings_grid_shrinking_intro_format">%1$d item(s) passen niet op het nieuwe raster en worden verwijderd:\n\n</string>
+    <string name="settings_grid_shrinking_home_format">• %1$d startscherm-widget(s) / icoon(en)\n</string>
+    <string name="settings_grid_shrinking_dock_format">• %1$d dock-icoon(en)\n</string>
+    <string name="settings_grid_shrinking_continue_q">\nDoorgaan?</string>
+    <string name="settings_grid_updated_toast">Raster bijgewerkt</string>
+
+    <string name="bytes_format">%1$d B</string>
+    <string name="kilobytes_format">%1$.0f KB</string>
+    <string name="megabytes_format">%1$.1f MB</string>
+
+    <string name="action_back">‹  Terug</string>
+    <string name="action_save">Opslaan</string>
+
+    <!-- ── Profielenscherm ─────────────────────────────────────────── -->
+    <string name="profiles_intro">Profielen maken een snapshot van je startscherm-raster, dock, achtergrond, pictogramstijl en pagina-overgang. Koppel een trigger (locatie, WiFi, Android Auto) en de launcher wisselt automatisch tussen profielen.</string>
+    <string name="profiles_save_current">Huidige opslaan als profiel</string>
+    <string name="profiles_switch_to">Wisselen naar…</string>
+    <string name="profiles_empty_hint">Nog geen profielen. Stel je startscherm in zoals je wilt voor een context (bijvoorbeeld je werk-opzet) en tik dan op \"Huidige opslaan als profiel\".</string>
+    <string name="profiles_active_pill">Actief</string>
+    <string name="profiles_auto_launches_format">Auto-start: %1$s</string>
+    <string name="profiles_auto_launches_more_format">%1$s  +%2$d meer</string>
+    <string name="profiles_create_dialog_title">Huidige status opslaan als profiel</string>
+    <string name="profiles_create_name_hint">Profielnaam (bijv. Thuis, Werk, Auto)</string>
+    <string name="profiles_saved_toast_format">\"%1$s\" opgeslagen</string>
+    <string name="profiles_couldnt_save_toast">Opslaan mislukt</string>
+    <string name="profiles_no_profiles_yet_toast">Nog geen profielen</string>
+    <string name="profiles_switch_dialog_title">Profiel wisselen</string>
+    <string name="profiles_switched_toast_format">Gewisseld naar %1$s</string>
+    <string name="profiles_action_rename">Hernoemen</string>
+    <string name="profiles_action_set_trigger">Trigger instellen…</string>
+    <string name="profiles_action_set_auto_launch">Auto-start apps instellen…</string>
+    <string name="profiles_action_switch_to_this">Wisselen naar dit profiel</string>
+    <string name="profiles_action_duplicate">Dupliceren</string>
+    <string name="profiles_action_delete">Verwijderen</string>
+    <string name="profiles_duplicate_dialog_title_format">\"%1$s\" dupliceren</string>
+    <string name="profiles_duplicate_default_name_format">%1$s (kopie)</string>
+    <string name="profiles_duplicated_toast_format">Gedupliceerd als \"%1$s\"</string>
+    <string name="profiles_couldnt_duplicate_toast">Dupliceren mislukt</string>
+    <string name="profiles_rename_dialog_title">Profiel hernoemen</string>
+    <string name="profiles_delete_dialog_title_format">\"%1$s\" verwijderen?</string>
+    <string name="profiles_delete_dialog_message">Dit verandert je huidige startscherm niet — alleen de opgeslagen snapshot wordt verwijderd.</string>
+    <string name="profiles_trigger_kind_manual">Handmatig (geen auto-trigger)</string>
+    <string name="profiles_trigger_kind_android_auto">Android Auto / automodus</string>
+    <string name="profiles_trigger_kind_wifi_connected">Verbonden met specifiek WiFi…</string>
+    <string name="profiles_trigger_kind_wifi_disconnected">WiFi losgekoppeld (onderweg)</string>
+    <string name="profiles_trigger_kind_geofence">Geofence (locatie)…</string>
+    <string name="profiles_trigger_dialog_title_format">Trigger voor \"%1$s\"</string>
+    <string name="profiles_wifi_ssid_hint">WiFi-netwerknaam (SSID)</string>
+    <string name="profiles_wifi_ssid_dialog_title">Activeren als verbonden met…</string>
+    <string name="profiles_trigger_saved_toast">Trigger opgeslagen</string>
+    <string name="profiles_geofence_register_failed">Kon geofence-schakelen niet inschakelen: %1$s</string>
+    <string name="profiles_bg_location_title">Locatie altijd toestaan</string>
+    <string name="profiles_bg_location_msg">Automatisch schakelen via geofence werkt alleen als de locatierechten van deze app op \"Altijd toestaan\" staan. Open de instellingen om dit toe te staan; daarna schakelt dit profiel automatisch.</string>
+    <string name="profiles_bg_location_open">Instellingen openen</string>
+    <string name="profiles_auto_launch_dialog_title">Auto-start bij activeren</string>
+    <string name="profiles_trigger_desc_geofence_format">Bij \"%1$s\" (geofence)</string>
+    <string name="profiles_trigger_desc_android_auto">Als telefoon in Android Auto / automodus is</string>
+    <string name="profiles_trigger_desc_wifi_ssid_format">Verbonden met WiFi: %1$s</string>
+    <string name="profiles_trigger_desc_wifi_disconnected">Als WiFi is losgekoppeld</string>
+    <string name="profiles_trigger_desc_manual">Alleen handmatig wisselen</string>
+
+    <string name="profile_quickswitch_title">Profiel wisselen</string>
+    <string name="profile_quickswitch_manage">Profielen beheren…</string>
+    <string name="profile_swap_toast_format">Profiel: %1$s</string>
+    <string name="profile_chip_wifi_format">Wi-Fi · %1$s</string>
+    <string name="profile_chip_wifi_disconnected">Wi-Fi losgekoppeld</string>
+    <string name="profile_chip_android_auto">Android Auto</string>
+    <string name="profile_chip_geofence">Locatie</string>
+    <string name="profile_chip_manual">Handmatig</string>
+    <string name="profile_quickswitch_chip_active_check">✓</string>
+
+    <!-- ── Geofence-kiezer ─────────────────────────────────────────── -->
+    <string name="geofence_picker_title">Locatie kiezen</string>
+    <string name="geofence_picker_my_location">📍  Mijn locatie</string>
+    <string name="geofence_picker_label_section">Label</string>
+    <string name="geofence_picker_label_hint">Thuis / Werk / Bij mama</string>
+    <string name="geofence_picker_radius_section">Straal</string>
+    <string name="geofence_picker_tap_hint">Tik op de kaart om de pin te plaatsen</string>
+    <string name="geofence_picker_tap_first_toast">Tik eerst op de kaart om de pin te plaatsen</string>
+    <string name="geofence_picker_perm_denied_toast">Locatietoestemming geweigerd</string>
+    <string name="geofence_picker_loc_unavailable_toast">Locatie niet beschikbaar — tik op de kaart</string>
+    <string name="geofence_picker_loc_fetch_failed_toast">Kon locatie niet ophalen</string>
+
+    <!-- ── App-lade ────────────────────────────────────────────────── -->
+    <string name="drawer_title">Alle apps</string>
+    <string name="drawer_close_cd">App-lade sluiten</string>
+    <string name="drawer_search_hint">Apps zoeken</string>
+    <string name="drawer_recent_section">Recent</string>
+    <string name="drawer_action_add_to_home">Toevoegen aan startscherm</string>
+    <string name="drawer_action_app_info">App-info</string>
+    <string name="drawer_action_uninstall">Verwijderen</string>
+    <string name="drawer_shortcut_fallback_label">Snelkoppeling</string>
+    <string name="drawer_shortcut_launch_failed_toast">Kon snelkoppeling niet starten</string>
+    <string name="drawer_uninstall_blocked_toast">Verwijderen mislukt — probeer App-info.</string>
+    <string name="drawer_category_all">Alles</string>
+    <string name="drawer_category_other">Overig</string>
+    <string name="drawer_category_games">Games</string>
+    <string name="drawer_category_social">Sociaal</string>
+    <string name="drawer_category_productivity">Productiviteit</string>
+    <string name="drawer_category_audio">Audio</string>
+    <string name="drawer_category_video">Video</string>
+    <string name="drawer_category_photos">Foto\'s</string>
+    <string name="drawer_category_news">Nieuws</string>
+    <string name="drawer_category_maps">Maps</string>
+    <string name="drawer_category_accessibility">Toegankelijkheid</string>
+
+    <!-- ── Zoekpaneel ──────────────────────────────────────────────── -->
+    <string name="search_title">Zoeken</string>
+    <string name="search_close_cd">Zoeken sluiten</string>
+    <string name="search_hint">Apps, contacten, instellingen…</string>
+    <string name="search_recent_section">Recente zoekopdrachten</string>
+    <string name="search_frequent_apps_section">Vaak gebruikt</string>
+    <string name="search_no_recent_yet">Nog niets — probeer hierboven te zoeken</string>
+    <string name="search_remove_recent_cd_format">%1$s uit geschiedenis verwijderen</string>
+    <string name="search_section_calculator">Rekenmachine</string>
+    <string name="search_section_apps">Apps</string>
+    <string name="search_section_contacts">Contacten</string>
+    <string name="search_section_settings">Instellingen</string>
+    <string name="search_section_web">Web</string>
+    <string name="search_contacts_grant_label">Toegang tot contacten verlenen</string>
+    <string name="search_contacts_grant_hint">Tik om je contacten te kunnen doorzoeken</string>
+    <string name="search_contact_subtitle_fallback">Contact</string>
+    <string name="search_math_result_format">= %1$s</string>
+    <string name="search_math_tap_to_copy">Tik om te kopiëren</string>
+    <string name="search_web_format">Op het web zoeken naar \"%1$s\"</string>
+    <string name="search_web_hint">Opent je standaard zoek-app</string>
+    <string name="search_copied_toast_format">%1$s gekopieerd</string>
+    <string name="search_no_web_app_toast">Geen web-zoek-app geïnstalleerd</string>
+    <string name="search_settings_blocked_toast_format">Kan \"%1$s\" niet openen — deze instellingenpagina is mogelijk privé voor het OS.</string>
+
+    <!-- ── Mappen-overlay ─────────────────────────────────────────── -->
+    <string name="folder_default_name">Map</string>
+    <string name="folder_overlay_hint">Tik om te openen · houd ingedrukt om naar het startscherm te slepen</string>
+
+    <!-- ── Launcher (startscherm, bewerkmodus, dock-kiezer) ────────── -->
+    <string name="first_run_welcome_title">Welkom</string>
+    <string name="first_run_hint">Houd ingedrukt om te bewerken\nVeeg omhoog voor apps\nVeeg omlaag om te zoeken</string>
+    <string name="first_run_dismiss">Tik om te sluiten</string>
+    <string name="home_settings_cd">Instellingen</string>
+    <string name="home_switch_profile_cd">Profiel wisselen</string>
+    <string name="home_all_pages_cd">Alle pagina\'s</string>
+    <string name="edit_bar_title">Startscherm bewerken</string>
+    <string name="edit_bar_action_edit">Bewerken</string>
+    <string name="edit_bar_action_remove">Verwijderen</string>
+    <string name="edit_bar_action_done">Klaar</string>
+    <string name="cell_all_apps">Alle apps</string>
+    <string name="dock_add_slot_cd">Vak toevoegen</string>
+
+    <string name="delete_page_dialog_title_format">Pagina %1$d verwijderen?</string>
+    <string name="delete_page_dialog_message_format">%1$d item(s) worden verwijderd.</string>
+
+    <string name="set_home_dialog_title">Als startscherm instellen?</string>
+    <string name="set_home_dialog_message">iappyxOS Launcher gebruiken als je op HOME drukt? Je kunt dit altijd wijzigen in de Android-instellingen.</string>
+    <string name="set_home_action_open_settings">Instellingen openen</string>
+    <string name="set_home_action_later">Later</string>
+
+    <string name="missing_packages_swept_toast_format">%1$s verwijderd voor apps die niet op dit apparaat staan</string>
+
+    <string name="no_empty_space_toast">Geen lege ruimte op deze pagina</string>
+    <string name="no_room_here_toast">Hier is geen plek — probeer een andere plek</string>
+
+    <string name="dock_add_sheet_title">Toevoegen aan dock</string>
+    <string name="dock_add_app_icon_title">App-icoon</string>
+    <string name="dock_add_app_icon_subtitle">Kies uit geïnstalleerde apps</string>
+    <string name="dock_add_all_apps_title">Alle apps</string>
+    <string name="dock_add_all_apps_subtitle">Vak dat de app-lade opent</string>
+
+    <string name="app_picker_title_add_to_dock">Toevoegen aan dock</string>
+    <string name="app_picker_title_add_app">App toevoegen</string>
+
+    <string name="cell_kind_app">App</string>
+    <string name="cell_kind_widget">Widget</string>
+    <string name="cell_kind_ai_widget">AI-widget</string>
+
+    <!-- ── Acties / labels gedeeld door manage-tabs ─────────────── -->
+    <string name="action_refine">Verfijnen</string>
+    <string name="action_send">Versturen</string>
+    <string name="action_open_settings">Instellingen openen</string>
+    <string name="action_open_picker">Kiezer openen</string>
+    <string name="action_later">Later</string>
+    <string name="action_refine_with_ai">Verfijnen met AI</string>
+    <string name="action_active_pill">Actief</string>
+    <string name="action_in_use">In gebruik</string>
+    <string name="action_edit_name_desc">Naam &amp; beschrijving bewerken</string>
+    <string name="hint_name">Naam</string>
+    <string name="hint_description">Beschrijving</string>
+    <string name="refine_in_progress_message_format">Verfijnen: %1$s…</string>
+    <string name="refine_done_toast">Verfijnd</string>
+    <string name="refine_failed_dialog_title">Verfijnen mislukt</string>
+    <string name="unexpected_error_toast_format">Onverwacht: %1$s</string>
+    <string name="unknown_error_short">onbekend</string>
+
+    <!-- ── AI Command Bar ─────────────────────────────────────────── -->
+    <string name="tab_widgets">Widgets</string>
+    <string name="tab_wallpapers">Achtergronden</string>
+    <string name="tab_transitions">Overgangen</string>
+    <string name="tab_icons">Iconen</string>
+    <string name="cmd_hero_title">Vraag iappyxOS Launcher</string>
+    <string name="cmd_hero_subtitle">Vertel de launcher wat je wilt — een widget maken, een app toevoegen, pagina\'s organiseren, een live achtergrond genereren.</string>
+    <string name="cmd_mode_chat">Chat</string>
+    <string name="cmd_mode_manual">Handmatig</string>
+    <string name="cmd_thinking">Nadenken…</string>
+    <string name="cmd_replying">Antwoorden…</string>
+    <string name="cmd_generating_chars">Genereren… %1$d tekens</string>
+    <string name="cmd_input_hint">Vertel de launcher…</string>
+    <string name="cmd_image_attached">Afbeelding toegevoegd</string>
+    <!-- Manage tabs: shared header chrome -->
+    <string name="manage_delete_confirm_format">%1$s\n\nDit kan niet ongedaan gemaakt worden.</string>
+    <string name="manage_tab_title_widgets">Widgets</string>
+    <string name="manage_tab_title_wallpapers">Achtergronden</string>
+    <string name="manage_tab_title_transitions">Overgangen</string>
+    <string name="manage_tab_title_icon_styles">Iconenstijl</string>
+    <!-- Manage tabs: AI button popup -->
+    <!-- Manage tabs: contextual icon button content descriptions -->
+    <string name="manage_icon_cd_new">Nieuwe genereren</string>
+    <string name="manage_icon_cd_share">Delen</string>
+    <string name="manage_icon_cd_import">Importeren van apparaat</string>
+    <!-- Manage tabs: short labels under the top-bar icons -->
+    <string name="manage_icon_label_new">Nieuw</string>
+    <string name="manage_icon_label_share">Delen</string>
+    <string name="manage_icon_label_import">Import</string>
+    <!-- Manage tabs: short labels under the per-card chip icons -->
+    <string name="manage_card_label_place">Plaats</string>
+    <string name="manage_card_label_use">Gebruik</string>
+    <string name="manage_card_label_refine">Verfijn</string>
+    <string name="manage_card_label_edit">Bewerk</string>
+    <string name="manage_card_label_files">Bestanden</string>
+    <string name="manage_card_label_delete">Verwijder</string>
+    <string name="manage_card_label_share_short">Delen</string>
+    <string name="manage_icons_refine_dialog_format_id">Iconenstijl verfijnen</string>
+    <!-- Manual AI: forbidden-API warning dialog -->
+    <string name="manual_forbidden_title">Verboden Web-API\'s gevonden</string>
+    <string name="manual_forbidden_intro">De geplakte code gebruikt API\'s die niet werken in de WebView-sandbox van de launcher. Ze falen meestal stilletjes:</string>
+    <string name="manual_forbidden_fix_header">Hoe oplossen</string>
+    <string name="manual_forbidden_fix_preamble">Plak dit in je AI-chat voor een gecorrigeerde versie:</string>
+    <string name="manual_forbidden_copy_hint">Hint kopiëren</string>
+    <string name="manual_forbidden_copied_toast">Gekopieerd — plak in je AI-chat</string>
+    <string name="manual_forbidden_save_anyway">Toch opslaan</string>
+    <string name="cmd_clear_history">Chatgeschiedenis wissen</string>
+    <string name="cmd_clear_history_confirm">Alle chatberichten permanent verwijderen? Dit kan niet ongedaan gemaakt worden.</string>
+    <string name="cmd_history_cleared">Chatgeschiedenis gewist</string>
+    <string name="cmd_history_subtitle_count">%1$d berichten • %2$s</string>
+    <string name="cmd_history_subtitle_empty">Geen opgeslagen berichten</string>
+    <string name="cmd_suggest_water_widget">Maak een waterintake-widget</string>
+    <string name="cmd_suggest_ocean_wallpaper">Genereer een mistige oceaan-achtergrond</string>
+    <string name="cmd_suggest_add_maps">Voeg Maps toe aan mijn startscherm</string>
+    <string name="cmd_suggest_weather">Toon me het weer</string>
+    <string name="cmd_no_key_message">Voeg je Anthropic API-sleutel toe in Instellingen om met de launcher-AI te chatten.</string>
+    <string name="cmd_or_use_manual">Of gebruik handmatige AI</string>
+    <string name="cmd_manual_title">Handmatige AI gebruiken</string>
+    <string name="cmd_manual_subtitle">Kies wat je wilt genereren. We bereiden een prompt voor die je in elke AI-chat kunt plakken; je brengt het resultaat terug.</string>
+    <string name="cmd_option_widget_title">Widget</string>
+    <string name="cmd_option_widget_subtitle">Een live HTML/JS-kaart op je startscherm</string>
+    <string name="cmd_option_wallpaper_title">Achtergrond</string>
+    <string name="cmd_option_wallpaper_subtitle">Een live achtergrond achter je startscherm</string>
+    <string name="cmd_option_transition_title">Pagina-overgang</string>
+    <string name="cmd_option_transition_subtitle">Hoe pagina\'s animeren als je tussen ze veegt</string>
+    <string name="cmd_option_icon_title">Pictogramstijl</string>
+    <string name="cmd_option_icon_subtitle">Een visuele behandeling toegepast op elk app-icoon</string>
+
+    <!-- ── Manage Widgets ─────────────────────────────────────────── -->
+    <string name="manage_widgets_empty">Nog geen widgets — tik op Genereren om er een te maken.</string>
+    <string name="manage_widgets_prefill_prompt">Genereer een widget die </string>
+    <string name="manage_widgets_placed_toast">Op startscherm geplaatst</string>
+    <string name="manage_widgets_no_space_toast">Geen vrije 2×2-ruimte — ruim eerst je raster op</string>
+    <string name="manage_widgets_delete_dialog_title">Widget verwijderen?</string>
+
+    <!-- ── Manage Wallpapers ─────────────────────────────────────── -->
+    <string name="manage_wallpapers_empty">Geen achtergronden — tik op Genereren hierboven.</string>
+    <string name="manage_wallpapers_set_picker_hint">Tik om de systeem-kiezer te openen — je keuze hier wordt eenmalig toegepast.</string>
+    <string name="manage_wallpapers_prefill_prompt">Genereer een live achtergrond die </string>
+    <string name="manage_wallpapers_set_dialog_title">iappyxOS Live als achtergrond instellen</string>
+    <string name="manage_wallpapers_set_dialog_message">Je keuze is opgeslagen. Om hem ook te zien, stel iappyxOS Live in als de actieve achtergrond.</string>
+    <string name="manage_wallpapers_switched_toast_format">Gewisseld naar %1$s</string>
+    <string name="manage_wallpapers_no_picker_toast">Geen achtergrond-kiezer beschikbaar</string>
+
+    <!-- ── Manage Transitions ────────────────────────────────────── -->
+    <string name="manage_transitions_empty">Geen overgangen — tik op Genereren hierboven.</string>
+    <string name="manage_transitions_prefill_prompt">Genereer een pagina-overgang die </string>
+    <string name="manage_transitions_switched_toast_format">Overgang: %1$s</string>
+    <string name="manage_transitions_delete_dialog_title">Overgang verwijderen?</string>
+    <string name="manage_transitions_deleted_toast">Verwijderd</string>
+    <string name="manage_transitions_delete_failed_toast">Verwijderen mislukt (bundel of actief?)</string>
+    <string name="manage_transitions_open_failed_toast">Kon bestand niet openen</string>
+
+    <!-- ── Manage Icon Filters ───────────────────────────────────── -->
+    <string name="manage_icons_empty">Tik op Genereren om je eerste pictogramstijl te maken.</string>
+    <string name="manage_icons_prefill_prompt">Genereer een pictogramstijl die </string>
+    <string name="manage_icons_refine_hint">Wat moet er veranderen?</string>
+    <string name="manage_icons_refining_toast">Verfijnen…</string>
+    <string name="manage_icons_refine_failed_toast_format">Verfijnen mislukt: %1$s</string>
+    <string name="manage_icons_read_failed">Kon bestand niet lezen</string>
+    <string name="manage_icons_wrong_kind_format">Dat is een %1$s, geen pictogramstijl.</string>
+    <string name="manage_icons_imported_toast_format">\"%1$s\" geïmporteerd</string>
+    <string name="manage_icons_import_failed_toast_format">Importeren mislukt: %1$s</string>
+    <string name="manage_icons_rename_dialog_title">Pictogramstijl hernoemen</string>
+    <string name="manage_icons_delete_dialog_title_format">\"%1$s\" verwijderen?</string>
+    <string name="manage_icons_delete_dialog_message">Deze pictogramstijl wordt uit je bibliotheek verwijderd.</string>
+
+    <!-- ── App-kiezer / Stock-widget-kiezer ───────────────────────── -->
+    <string name="app_picker_default_title">App kiezen</string>
+    <string name="app_picker_search_hint">Apps zoeken</string>
+    <string name="stock_widget_picker_title">Widget kiezen</string>
+    <string name="stock_widget_picker_search_hint">Widgets zoeken</string>
+
+    <!-- ── QR delen / ontvangen ──────────────────────────────────── -->
+    <string name="qr_send_title">Delen via QR</string>
+    <string name="qr_couldnt_build_bundle_format">Bundel maken mislukt: %1$s</string>
+    <string name="qr_frame_counter_format">Frame %1$d / %2$d</string>
+    <string name="qr_send_hold_hint">Houd dicht bij het ontvangende apparaat</string>
+    <string name="qr_receive_title">Ontvangen via QR</string>
+    <string name="qr_receive_hint">Richt de camera op de QR-code</string>
+    <string name="qr_receive_steady_hint">Houd stil — frames wisselen op de andere telefoon.</string>
+    <string name="qr_camera_perm_required_toast">Cameratoestemming vereist om QR te scannen</string>
+    <string name="qr_camera_failed_toast_format">Camera mislukt: %1$s</string>
+    <string name="qr_saved_status_format">Opgeslagen: %1$s</string>
+    <string name="bundle_open_tab_hint_format">Open het tabblad %1$s om het te zien</string>
+    <string name="qr_decode_failed_status_format">Decoderen mislukt: %1$s</string>
+
+    <!-- ── Nearby (WiFi Direct) ──────────────────────────────────── -->
+    <string name="nearby_send_title">Delen in de buurt</string>
+    <string name="nearby_receive_title">Ontvangen uit de buurt</string>
+    <string name="nearby_starting_wifi_direct">WiFi Direct starten…</string>
+    <string name="nearby_looking_for_devices">Zoeken naar nabije apparaten…</string>
+    <string name="nearby_open_share_on_other">Open Delen in de buurt op de andere telefoon.</string>
+    <string name="nearby_open_receive_on_other">Open Ontvangen uit de buurt op de andere telefoon.</string>
+    <string name="nearby_waiting_for_receiver">Wachten op ontvanger…</string>
+    <string name="nearby_sending">Versturen…</string>
+    <string name="nearby_sending_hint">Even wachten — houd beide telefoons dicht bij elkaar.</string>
+    <string name="nearby_sent">Verzonden!</string>
+    <string name="nearby_sent_hint_format">De ontvanger heeft de %1$s.</string>
+    <string name="nearby_couldnt_start">Starten mislukt</string>
+    <string name="nearby_try_again">Probeer opnieuw</string>
+    <string name="nearby_couldnt_connect">Verbinden mislukt</string>
+    <string name="nearby_tap_to_connect">Tik om te verbinden</string>
+    <string name="nearby_connecting_format">Verbinden met %1$s…</string>
+    <string name="nearby_downloading">Downloaden…</string>
+    <string name="nearby_downloading_pct_format">Downloaden… %1$d%%</string>
+    <string name="nearby_download_failed">Download mislukt</string>
+    <string name="nearby_install_failed">Installatie mislukt</string>
+    <string name="nearby_how_it_works_title">Hoe Nearby werkt</string>
+    <string name="nearby_how_it_works_body">Beide telefoons zetten kort WiFi Direct aan. De ontvanger kiest jouw telefoon uit een lijst en haalt de bundel op. Niets gaat het internet op.</string>
+    <string name="nearby_couldnt_build_bundle_format">Bundel maken mislukt: %1$s</string>
+
+    <plurals name="nearby_devices_count_format">
+        <item quantity="one">%1$d nabij apparaat</item>
+        <item quantity="other">%1$d nabije apparaten</item>
+    </plurals>
+
+    <!-- ── Showcase-browser ───────────────────────────────────────── -->
+    <string name="showcase_title">Showcase</string>
+    <string name="showcase_loading">Showcase laden…</string>
+    <string name="showcase_load_failed_format">Laden van showcase mislukt: %1$s</string>
+    <string name="showcase_empty_available">Alles in deze categorie is al geïnstalleerd.</string>
+    <string name="showcase_empty_installed">Niets in deze categorie is nog geïnstalleerd.</string>
+    <string name="showcase_empty_all">Nog geen items.</string>
+    <string name="showcase_built_in_badge">Standaard</string>
+    <string name="showcase_uses_attribution_format">Gebruikt: %1$s</string>
+    <string name="showcase_action_install">Installeren</string>
+    <string name="showcase_action_install_again">Opnieuw installeren</string>
+    <string name="showcase_action_install_copy">Kopie installeren</string>
+    <string name="showcase_action_installing">Installeren…</string>
+    <string name="showcase_install_failed_format">Installeren mislukt: %1$s</string>
+    <string name="showcase_filter_all">Alles</string>
+    <string name="showcase_filter_available">Beschikbaar</string>
+    <string name="showcase_filter_installed">Geïnstalleerd</string>
+    <string name="error_unknown">onbekende fout</string>
+
+    <!-- ── Generieke / gedeelde dialogen ─────────────────────────── -->
+    <string name="dialog_ai_rewriting_title">AI is aan het herschrijven</string>
+
+    <string name="manage_open_failed_toast">Kon bestand niet openen</string>
+    <string name="manage_read_failed_format">Lezen mislukt: %1$s</string>
+    <string name="manage_imported_toast">Geïmporteerd</string>
+    <string name="manage_read_zip_failed_format">Kon zip niet lezen: %1$s</string>
+    <string name="manage_zip_no_widget_html">Zip bevatte geen widget.html</string>
+    <string name="manage_not_a_transition">Lijkt geen overgang-spec</string>
+    <string name="manage_not_a_wallpaper">Lijkt geen achtergrond-bestand</string>
+    <string name="manage_save_failed_format">Opslaan mislukt: %1$s</string>
+
+    <string name="cell_shortcut_launch_failed_toast">Kon snelkoppeling niet starten</string>
+    <string name="cell_action_remove_from_home">Van startscherm verwijderen</string>
+    <string name="cell_action_customize_home">Startscherm aanpassen</string>
+    <string name="cell_action_rename">Naam wijzigen</string>
+    <string name="notif_reply_send">Verzenden</string>
+    <string name="cell_rename_dialog_title">App-naam wijzigen</string>
+    <string name="cell_rename_dialog_reset">Standaard</string>
+    <string name="cell_action_edit_widget">Widget bewerken</string>
+
+    <!-- ── Delen / Ontvangen kiezer-vellen ────────────────────────── -->
+    <string name="share_sheet_title_format">%1$s delen</string>
+    <string name="share_sheet_subtitle">Kies hoe je het verstuurt</string>
+    <string name="share_save_to_file">Opslaan in bestand</string>
+    <string name="share_save_to_file_subtitle">Doorgeven aan het systeem-deelblad — Drive, Files, Gmail, etc.</string>
+    <string name="share_couldnt_share_format">Delen mislukt: %1$s</string>
+    <string name="share_nearby_title">Delen in de buurt</string>
+    <string name="share_nearby_subtitle">WiFi Direct tussen twee telefoons — zonder internet.</string>
+    <string name="share_via_qr_title">Delen via QR</string>
+    <string name="share_via_qr_subtitle">Wissel de bundel als QR-frames; de ontvanger scant ze met de camera.</string>
+    <string name="share_submit_showcase_title">Indienen bij Showcase</string>
+    <string name="share_submit_showcase_subtitle_format">Een pull request openen die deze %1$s toevoegt aan de iappyxOS-showcase op GitHub.</string>
+
+    <string name="receive_sheet_title_format">%1$s ontvangen</string>
+    <string name="receive_sheet_subtitle">Kies hoe het binnenkomt</string>
+    <string name="receive_from_file_title">Vanuit bestand</string>
+    <string name="receive_from_file_subtitle">Open een .iappyx-* bundel die op dit apparaat staat.</string>
+    <string name="receive_nearby_title">Ontvangen uit de buurt</string>
+    <string name="receive_nearby_subtitle">Haal van een andere telefoon via WiFi Direct.</string>
+    <string name="receive_via_qr_title">Ontvangen via QR</string>
+    <string name="receive_via_qr_subtitle">Scan de wisselende QR-frames van een andere telefoon.</string>
+    <string name="receive_browse_showcase_title">Showcase doorbladeren</string>
+    <string name="receive_browse_showcase_subtitle_format">Kies een door de community gemaakte %1$s om te installeren. Openbare repo — geen account nodig.</string>
+
+    <!-- ── Showcase-indiening (GitHub PR) ─────────────────────────── -->
+    <string name="submit_token_needed_title">GitHub-token nodig</string>
+    <string name="submit_open_settings">Instellingen openen</string>
+    <string name="submit_couldnt_read_sources">Kon bronbestanden niet lezen</string>
+    <string name="submit_dialog_title_format">%1$s indienen bij Showcase</string>
+    <string name="submit_action">Indienen</string>
+    <string name="submit_progress_title">Indienen…</string>
+    <string name="submit_progress_message">Forken, branchen, pull request openen…</string>
+    <string name="submit_pr_opened_title">Pull request geopend</string>
+    <string name="submit_action_close">Sluiten</string>
+    <string name="submit_action_view_pr">PR bekijken</string>
+    <string name="submit_failed_title">Indienen mislukt</string>
+    <string name="submit_token_needed_long_message">Indienen bij de Showcase opent een pull request op GitHub, waarvoor je een Personal Access Token nodig hebt. Genereer er een op github.com/settings/tokens (scope: public_repo) en plak hem in Instellingen → GitHub-token.</string>
+    <string name="submit_field_title">Titel</string>
+    <string name="submit_field_slug">Slug (mapnaam)</string>
+    <string name="submit_field_description">Beschrijving</string>
+
+    <!-- Taal-kiezer (in Instellingen → Startscherm-indeling). -->
+    <string name="settings_language_label">Taal</string>
+    <string name="settings_language_dialog_title">Taal</string>
+    <string name="settings_language_system">Systeemstandaard</string>
+
+    <!-- Bundled-files manager voor widgets. -->
+    <string name="action_done">Klaar</string>
+    <string name="action_overwrite">Overschrijven</string>
+    <string name="bundle_files_dialog_title_format">Bestanden voor %1$s</string>
+    <string name="bundle_files_empty">Nog geen gebundelde bestanden.\nVoeg er een toe zodat de widget het kan lezen.</string>
+    <string name="bundle_files_empty_total">Geen bestanden</string>
+    <string name="bundle_files_total_format">%1$d bestand(en) · %2$s totaal</string>
+    <string name="bundle_files_add_file">Bestand toevoegen</string>
+    <string name="bundle_files_added_format">%1$s toegevoegd (%2$s)</string>
+    <string name="bundle_files_too_large_format">Bestand te groot. Max %1$s per bestand.</string>
+    <string name="bundle_files_add_failed_format">Bestand toevoegen mislukt: %1$s</string>
+    <string name="bundle_files_overwrite_title">Bestand vervangen?</string>
+    <string name="bundle_files_overwrite_message_format">Er bestaat al een bestand met de naam %1$s in de bundel. Vervangen?</string>
+    <string name="bundle_files_remove_title">Bestand verwijderen?</string>
+    <string name="bundle_files_remove_message_format">%1$s definitief uit de bundel van deze widget verwijderen?</string>
+
+    <string name="showcase_action_installing_pct_format">Installeren… %1$d%%</string>
+
+    <string name="widget_trustall_warning_format">%1$s gebruikt onveilige HTTPS — iedereen op het netwerk kan het verkeer onderscheppen.</string>
+    <string name="widget_trustall_warning_fallback_name">Een widget</string>
+
+    <string name="settings_about_label">Over</string>
+    <string name="settings_about_hint">Versie, licentie, vermeldingen en privacy</string>
+    <string name="about_tagline">Programmeerbare Android-launcher met door AI gegenereerde widgets, wallpapers en realtime aanpassingen.</string>
+    <string name="about_version_format">Versie %1$s (build %2$d)</string>
+    <string name="about_license_label">Licentie</string>
+    <string name="about_license_value">MIT</string>
+    <string name="about_source_label">Broncode</string>
+    <string name="about_acknowledgements_label">Open-source bibliotheken</string>
+    <string name="about_acknowledgements_count_format">%1$d projecten</string>
+    <string name="about_privacy_title">Privacy</string>
+    <string name="about_privacy_body">Alle data blijft op je apparaat. AI-sleutels worden opgeslagen in Androids hardware-gebackte versleutelde voorkeuren. Geen analytics, geen tracking, geen telemetrie. Netwerkverzoeken gaan alleen naar de AI-aanbieder die je hebt geconfigureerd (wanneer je de AI iets vraagt) en naar GitHub raw content (wanneer je de Showcase-browser opent). Pushmeldingen, indien gebruikt door een widget, lopen via Firebase Cloud Messaging.</string>
+    <string name="about_footer">Gemaakt door een indie-ontwikkelaar uit Nederland · © 2026 iappyx</string>
+    <string name="about_url_copied">URL gekopieerd</string>
+    <string name="about_support_label">Steun de ontwikkeling</string>
+    <string name="about_support_value">Trakteer me op een koffie</string>
+    <string name="support_prompt_title">Bevalt iappyxOS Launcher?</string>
+    <string name="support_prompt_body">Het is volledig gratis — geen advertenties, geen tracking, geen abonnementen. Als het een plekje op je telefoon heeft verdiend, helpt een koffie om het draaiende te houden.</string>
+    <string name="support_prompt_positive">Trakteer me op een koffie</string>
+    <string name="support_prompt_later">Misschien later</string>
+    <string name="support_prompt_no">Nee, bedankt</string>
+
+    <string name="ack_title">Open-source bibliotheken</string>
+</resources>

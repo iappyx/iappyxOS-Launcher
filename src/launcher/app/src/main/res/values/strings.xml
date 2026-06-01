@@ -1,0 +1,988 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iappyxOS Launcher</string>
+    <string name="wallpaper_label">iappyxOS Live</string>
+    <string name="wallpaper_description">Programmable HTML wallpapers — pick the active payload in iappyxOS Launcher settings.</string>
+
+    <!-- ── Settings ─────────────────────────────────────────────────── -->
+    <string name="settings_title">Settings</string>
+
+    <!-- AI credentials card -->
+    <string name="settings_ai_section">AI assistant</string>
+    <string name="settings_plugins_label">Plugins</string>
+    <string name="settings_battery_usage_label">Battery usage by widget</string>
+    <!-- APPLOCK: biometric / device-credential app lock. -->
+    <string name="settings_app_locks_label">App locks</string>
+    <string name="settings_app_locks_subtitle_format">%1$d locked</string>
+    <string name="settings_app_locks_subtitle_none">Tap to choose apps to protect</string>
+    <string name="app_lock_screen_title">App locks</string>
+    <string name="app_lock_screen_hint">Tap an app to require fingerprint or your phone\'s PIN / pattern before it launches from this launcher.</string>
+    <string name="app_lock_limitation_note">Note: only launches from this launcher are gated. Switching back via the recents carousel does not re-prompt, and locked apps\' notifications may still appear.</string>
+    <string name="app_lock_prompt_title">Unlock %1$s</string>
+    <string name="app_lock_prompt_subtitle">Use fingerprint or device PIN</string>
+    <string name="app_lock_settings_auth_title">Open App locks</string>
+    <string name="app_lock_settings_auth_subtitle">Authenticate to change which apps are protected</string>
+    <string name="app_lock_settings_gate_placeholder">Authenticating…</string>
+    <string name="settings_display_section">Display &amp; appearance</string>
+    <string name="settings_ai_key_label">Anthropic API key</string>
+    <string name="settings_ai_key_hint">Create at console.anthropic.com. Stored locally, hardware-encrypted.</string>
+    <string name="settings_ai_key_placeholder">sk-ant-…</string>
+    <string name="settings_ai_key_remove">Remove key</string>
+    <string name="settings_ai_model_label">Create model</string>
+    <string name="settings_ai_model_placeholder">claude-sonnet-4-6</string>
+    <string name="settings_iterate_model_label">Edit model</string>
+    <string name="settings_iterate_model_hint">Used when refining or editing existing widgets and wallpapers — typically a faster model. Falls back to the create model for full rewrites.</string>
+    <string name="settings_iterate_model_placeholder">claude-haiku-4-5-20251001</string>
+    <string name="settings_models_refresh">Refresh</string>
+    <string name="settings_models_loading">Loading…</string>
+    <string name="settings_models_error">Couldn\'t load — paste manually</string>
+    <string name="settings_models_no_key">Add API key to load list</string>
+    <string name="settings_models_count_format">%1$d models</string>
+    <string name="settings_github_token_label">GitHub token</string>
+    <string name="settings_github_token_hint">Optional. Needed to submit your widgets, wallpapers, or transitions to the Showcase. Generate a classic Personal Access Token at github.com/settings/tokens with the public_repo scope.</string>
+    <string name="settings_github_token_placeholder">ghp_…</string>
+    <string name="settings_github_token_remove">Remove token</string>
+    <string name="settings_save_credentials">Save credentials</string>
+
+    <!-- Home layout card -->
+    <string name="settings_home_layout_section">Home layout</string>
+    <string name="settings_grid_preview_default">5 × 6 grid · dock 5</string>
+    <string name="settings_grid_columns">Columns</string>
+    <string name="settings_grid_rows">Rows</string>
+    <string name="settings_grid_dock_slots">Dock slots</string>
+    <string name="settings_grid_apply">Apply grid</string>
+    <string name="settings_dock_labels_label">Show dock labels</string>
+    <string name="settings_dock_labels_hint">Show app name under each dock icon</string>
+    <string name="settings_widget_theme_label">Theme</string>
+    <string name="font_picker_title">Fonts</string>
+    <string name="font_picker_search_hint">Search fonts</string>
+    <string name="settings_widget_theme_hint">Customize widgets and the launcher accent (colors, font, shape, glass)</string>
+    <string name="settings_app_drawer_label">App drawer</string>
+    <string name="settings_app_drawer_hint">Choose how the app drawer opens</string>
+    <string name="settings_app_drawer_standard">Standard</string>
+    <string name="settings_app_drawer_field">The Field</string>
+    <string name="settings_long_press_menu_label">Long-press shows menu</string>
+    <string name="settings_long_press_menu_hint">Off: long-press jumps straight into edit mode</string>
+    <string name="settings_allow_rotation_label">Allow rotation</string>
+    <string name="settings_allow_rotation_hint">Follow the device when you turn it</string>
+    <string name="settings_dominant_orientation_label">Dominant orientation</string>
+    <string name="settings_dominant_orientation_hint">The orientation you design your grid in</string>
+    <string name="settings_notification_badges_label">Notification badges</string>
+    <string name="settings_notification_badges_hint">Show unread counts on app icons (needs Notification access)</string>
+    <string name="settings_notification_badges_grant">Grant Notification access ›</string>
+    <string name="settings_page_transition_label">Page transition</string>
+    <string name="settings_page_transition_default">Horizontal sweep</string>
+    <string name="settings_icon_style_label">Icon style</string>
+    <string name="settings_icon_style_none">None</string>
+    <string name="settings_icon_pack_label">Icon pack</string>
+    <string name="settings_icon_pack_none">None (built-in)</string>
+    <string name="settings_mask_unthemed_label">Mask unthemed icons</string>
+    <string name="settings_mask_unthemed_hint">Apply the pack\'s background/mask to apps it doesn\'t theme</string>
+    <string name="settings_live_wallpaper_label">Live wallpaper</string>
+    <string name="settings_live_wallpaper_set_prompt">Tap to set iappyxOS Live</string>
+    <string name="settings_wallpaper_toolkit_section">Wallpaper toolkit</string>
+    <string name="settings_wallpaper_location_label">Location</string>
+    <string name="settings_wallpaper_calendar_label">Calendar (read)</string>
+    <string name="settings_wallpaper_media_label">Photo library (read)</string>
+    <string name="settings_wallpaper_perm_grant_prompt">Tap to grant</string>
+
+    <!-- Profiles section -->
+    <string name="settings_profiles_label">Profiles</string>
+    <string name="settings_profiles_default_subtitle">Snapshot your home and swap by location, WiFi, or Android Auto</string>
+
+    <!-- Backup & restore section -->
+    <string name="settings_backup_section">Backup &amp; restore</string>
+    <string name="settings_backup_section_hint">Save your home layout, generated widgets, wallpapers, and transitions to a single .iappyxbackup file. Useful for moving to a new device.</string>
+    <string name="settings_backup_export_label">Export backup</string>
+    <string name="settings_backup_export_default_subtitle">Save everything to a file</string>
+    <string name="settings_backup_import_label">Import backup</string>
+    <string name="settings_backup_import_hint">Restore from a previously-saved file</string>
+    <string name="settings_backup_cleanup_label">Clean up unused widget data</string>
+    <string name="settings_backup_cleanup_hint">Reclaim space from widgets that no longer exist</string>
+
+    <!-- Reused glyphs -->
+    <string name="chevron_right">›</string>
+    <string name="stepper_minus">−</string>
+    <string name="stepper_plus">+</string>
+
+    <!-- Common dialog buttons + toasts (reused) -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_done">Done</string>
+    <string name="action_overwrite">Overwrite</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_import">Import</string>
+    <string name="state_granted">Granted</string>
+    <string name="state_already_granted">Already granted</string>
+    <string name="toast_saved">Saved</string>
+
+    <!-- Settings — credential remove dialogs / toasts -->
+    <string name="settings_remove_api_key_title">Remove API key?</string>
+    <string name="settings_remove_api_key_message">The launcher\'s AI chat will stop working until you add a key again. The manual AI flow keeps working without one.</string>
+    <string name="settings_api_key_removed_toast">API key removed</string>
+    <string name="settings_remove_github_token_title">Remove GitHub token?</string>
+    <string name="settings_remove_github_token_message">Submitting widgets / wallpapers / transitions to the Showcase will stop working until you add a token again. Browsing the showcase still works without one.</string>
+    <string name="settings_github_token_removed_toast">GitHub token removed</string>
+
+    <!-- Settings — profiles row dynamic subtitle -->
+    <!-- "%1$d saved · active: %2$s" — count + active profile name -->
+    <string name="settings_profiles_saved_active_format">%1$d saved · active: %2$s</string>
+    <!-- "%1$d saved · no active profile" -->
+    <string name="settings_profiles_saved_no_active_format">%1$d saved · no active profile</string>
+
+    <!-- Settings — backup row dynamic subtitle -->
+    <!-- "Last backup: <relative time>" — e.g. "Last backup: 2 minutes ago" -->
+    <string name="settings_backup_last_format">Last backup: %1$s</string>
+
+    <!-- Settings — cleanup -->
+    <string name="settings_cleanup_none_subtitle">No unused widget data to clean up</string>
+    <!-- "%1$d unused folder(s) · %2$s" — count + size string -->
+    <string name="settings_cleanup_some_format">%1$d unused folder(s) · %2$s</string>
+    <string name="settings_cleanup_nothing_toast">Nothing to clean up</string>
+    <string name="settings_cleanup_dialog_title">Clean up widget data?</string>
+    <!-- "%1$d folder(s) totalling %2$s" + body paragraphs -->
+    <string name="settings_cleanup_dialog_message">Found %1$d folder(s) totalling %2$s that are no longer referenced by any home-screen widget.\n\nThese were left over from widgets you previously deleted or asset-based widgets that have since been removed. Deleting them is safe — no live widget will be affected — but their saved-file data (if any) will be gone.\n\nThis cannot be undone.</string>
+    <!-- "Cleaned up %1$d folder(s) (%2$s)" -->
+    <string name="settings_cleanup_done_toast_format">Cleaned up %1$d folder(s) (%2$s)</string>
+
+    <!-- Settings — backup export flow -->
+    <string name="settings_backup_export_include_key">Include API key (warning: stored as plain text in the backup)</string>
+    <string name="settings_backup_export_include_runtime">Include widget runtime data (counters, saved values, …)</string>
+    <string name="settings_backup_export_dialog_title">Export backup</string>
+    <string name="settings_backup_export_dialog_message">Saves your home layout, generated widgets, wallpapers, and transitions into one .iappyxbackup file you can move to another device.</string>
+    <string name="settings_backup_choose_location">Choose location</string>
+    <string name="settings_backup_exporting_title">Exporting backup</string>
+    <string name="settings_backup_writing_message">Writing file…</string>
+    <string name="settings_backup_cant_open_write">Couldn\'t open file for writing</string>
+    <!-- "Exported (%1$d widgets, %2$d wallpapers)" -->
+    <string name="settings_backup_export_done_toast_format">Exported (%1$d widgets, %2$d wallpapers)</string>
+    <string name="settings_backup_export_failed_title">Export failed</string>
+
+    <!-- Settings — backup import / restore flow -->
+    <string name="settings_backup_reading_title">Reading backup</string>
+    <string name="settings_backup_cant_open">Couldn\'t open file</string>
+    <string name="settings_backup_cant_import_title">Can\'t import</string>
+    <string name="settings_backup_unknown_error">Unknown error</string>
+    <string name="settings_backup_cant_read_title">Can\'t read backup</string>
+    <!-- "Backup from <device> · <date>\n\n" -->
+    <string name="settings_backup_summary_header_format">Backup from %1$s · %2$s\n\n</string>
+    <string name="settings_backup_unknown_device">unknown device</string>
+    <string name="settings_backup_unknown_date">unknown date</string>
+    <!-- Bullet items in the import-confirm summary. %1$d is a count. -->
+    <string name="settings_backup_summary_widgets_format">• %1$d widget(s)\n</string>
+    <string name="settings_backup_summary_wallpapers_format">• %1$d wallpaper(s)\n</string>
+    <string name="settings_backup_summary_transitions_format">• %1$d transition(s)\n</string>
+    <string name="settings_backup_summary_icon_filters_format">• %1$d icon style(s)\n</string>
+    <string name="settings_backup_summary_profiles_format">• %1$d profile(s)\n</string>
+    <string name="settings_backup_summary_home_format">• Home layout (%1$d page(s))\n</string>
+    <string name="settings_backup_summary_includes_key">• Includes API key\n</string>
+    <string name="settings_backup_summary_includes_runtime">• Includes widget data\n</string>
+    <!-- "\n⚠ %1$d app(s) in this backup aren't installed:\n" -->
+    <string name="settings_backup_summary_missing_header_format">\n⚠ %1$d app(s) in this backup aren\'t installed:\n</string>
+    <!-- "  - %1$s\n" -->
+    <string name="settings_backup_summary_missing_item_format">  - %1$s\n</string>
+    <!-- "  …and %1$d more\n" -->
+    <string name="settings_backup_summary_missing_more_format">  …and %1$d more\n</string>
+    <string name="settings_backup_summary_missing_footer">Their icons will appear once you install the missing apps.</string>
+    <string name="settings_backup_import_mode_merge">Merge — keep my current setup, add what\'s in the backup</string>
+    <string name="settings_backup_import_mode_replace">Replace — wipe my current setup, restore exactly the backup</string>
+    <string name="settings_backup_import_dialog_title">Import backup</string>
+    <string name="settings_backup_restoring_title">Restoring</string>
+    <string name="settings_backup_applying_message">Applying backup…</string>
+    <string name="settings_backup_restored_title">Restored</string>
+    <string name="settings_backup_restored_message">Backup imported successfully. Tap OK to return — the launcher will pick up the changes.</string>
+    <string name="settings_backup_restore_failed_title">Restore failed</string>
+
+    <!-- Settings — orientation picker -->
+    <string name="settings_orientation_portrait">Portrait</string>
+    <string name="settings_orientation_landscape">Landscape</string>
+
+    <!-- Settings — wallpaper fallback titles -->
+    <string name="settings_wallpaper_fallback_clock">Clock</string>
+    <string name="settings_wallpaper_fallback_rotating_radial">Rotating radial gradient</string>
+
+    <!-- Settings — grid -->
+    <!-- "%1$d × %2$d grid · dock %3$d" -->
+    <string name="settings_grid_preview_format">%1$d × %2$d grid · dock %3$d</string>
+    <string name="settings_grid_no_changes_toast">No changes</string>
+    <string name="settings_grid_shrinking_title">Shrinking grid</string>
+    <!-- "%1$d item(s) won't fit on the new grid and will be removed:\n\n" -->
+    <string name="settings_grid_shrinking_intro_format">%1$d item(s) won\'t fit on the new grid and will be removed:\n\n</string>
+    <!-- "• %1$d home widget(s) / icon(s)\n" -->
+    <string name="settings_grid_shrinking_home_format">• %1$d home widget(s) / icon(s)\n</string>
+    <!-- "• %1$d dock icon(s)\n" -->
+    <string name="settings_grid_shrinking_dock_format">• %1$d dock icon(s)\n</string>
+    <string name="settings_grid_shrinking_continue_q">\nContinue?</string>
+    <string name="settings_grid_updated_toast">Grid updated</string>
+
+    <!-- Byte-formatting suffixes (used by formatBytes) -->
+    <!-- "%1$d B" -->
+    <string name="bytes_format">%1$d B</string>
+    <!-- "%1$.0f KB" -->
+    <string name="kilobytes_format">%1$.0f KB</string>
+    <!-- "%1$.1f MB" -->
+    <string name="megabytes_format">%1$.1f MB</string>
+
+    <!-- Common chip / button labels reused by multiple screens -->
+    <string name="action_back">‹  Back</string>
+    <string name="action_save">Save</string>
+
+    <!-- ── Profiles screen ──────────────────────────────────────────── -->
+    <string name="profiles_intro">Profiles snapshot your home grid, dock, wallpaper, icon style and page transition together. Bind a trigger (location, WiFi, Android Auto) and the launcher swaps between them automatically.</string>
+    <string name="profiles_save_current">Save current as profile</string>
+    <string name="profiles_switch_to">Switch to…</string>
+    <string name="profiles_empty_hint">No profiles yet. Set up your home the way you like for a context (say, your work setup), then tap \"Save current as profile\".</string>
+    <string name="profiles_pause_autoswitch">Pause auto-switching</string>
+    <string name="profiles_pause_autoswitch_hint">While editing profiles, triggers (WiFi, Android Auto, geofences) won\'t snap the active profile back. Turn off when done.</string>
+    <string name="profiles_active_pill">Active</string>
+    <!-- "Auto-launches: %1$s" — comma-separated app labels -->
+    <string name="profiles_auto_launches_format">Auto-launches: %1$s</string>
+    <!-- "%1$s, %2$s, %3$s  +%4$d more" — first 3 labels + remainder count -->
+    <string name="profiles_auto_launches_more_format">%1$s  +%2$d more</string>
+    <string name="profiles_create_dialog_title">Save current state as profile</string>
+    <string name="profiles_create_name_hint">Profile name (e.g. Home, Work, Drive)</string>
+    <!-- "Saved \"%1$s\"" -->
+    <string name="profiles_saved_toast_format">Saved \"%1$s\"</string>
+    <string name="profiles_couldnt_save_toast">Couldn\'t save</string>
+    <string name="profiles_no_profiles_yet_toast">No profiles yet</string>
+    <string name="profiles_switch_dialog_title">Switch profile</string>
+    <!-- "Switched to %1$s" -->
+    <string name="profiles_switched_toast_format">Switched to %1$s</string>
+    <string name="profiles_action_rename">Rename</string>
+    <string name="profiles_action_set_trigger">Set trigger…</string>
+    <string name="profiles_action_set_auto_launch">Set auto-launch apps…</string>
+    <string name="profiles_action_set_custom_actions">Set custom actions…</string>
+    <string name="profiles_action_switch_to_this">Switch to this profile</string>
+
+    <!-- Custom actions list (per-profile arbitrary intents). -->
+    <string name="profiles_custom_actions_dialog_title">Custom actions</string>
+    <string name="profiles_custom_actions_add">+ Add custom action</string>
+    <string name="profiles_custom_actions_edit">Edit</string>
+    <string name="profiles_custom_actions_test">Test now</string>
+    <string name="profiles_custom_actions_remove">Remove</string>
+    <!-- Card summary line: "Custom actions: %1$d (VPN: Home, Tasker: …)" -->
+    <string name="profiles_custom_actions_summary_format">Custom actions: %1$d (%2$s)</string>
+    <string name="profiles_custom_actions_test_ok">Action sent. Check the target app to confirm it took effect.</string>
+    <!-- %1$s = exception message -->
+    <string name="profiles_custom_actions_test_nomatch_format">No app matched: %1$s</string>
+    <string name="profiles_custom_actions_test_perm_format">Permission denied: %1$s. Check that app\'s settings for an \"Allow remote control\" toggle.</string>
+    <string name="profiles_custom_actions_test_failed_format">Failed: %1$s</string>
+
+    <!-- Intent-action editor activity (form fields). -->
+    <string name="intent_editor_title">Custom action</string>
+    <string name="intent_editor_label_label">Label</string>
+    <string name="intent_editor_label_hint">e.g. VPN: Home up</string>
+    <string name="intent_editor_label_required">Label is required</string>
+    <string name="intent_editor_verb_label">Dispatch as</string>
+    <string name="intent_editor_package_label">Package</string>
+    <string name="intent_editor_package_hint">e.g. com.wireguard.android</string>
+    <string name="intent_editor_class_label">Class (optional)</string>
+    <string name="intent_editor_class_hint">e.g. com.wireguard.android.model.TunnelManager$IntentReceiver</string>
+    <!-- "%1$s (may need setup)" -->
+    <string name="intent_editor_class_not_exported_format">%1$s (may need setup)</string>
+    <string name="intent_editor_action_label">Action</string>
+    <string name="intent_editor_action_hint">e.g. com.wireguard.android.action.SET_TUNNEL_UP</string>
+    <string name="intent_editor_data_label">Data URI (optional)</string>
+    <string name="intent_editor_data_hint">e.g. content://… or geo:…</string>
+    <string name="intent_editor_mime_label">MIME type (optional)</string>
+    <string name="intent_editor_mime_hint">e.g. text/plain</string>
+    <string name="intent_editor_categories_label">Categories (comma-separated, optional)</string>
+    <string name="intent_editor_categories_hint">e.g. android.intent.category.DEFAULT</string>
+    <string name="intent_editor_flags_label">Flags</string>
+    <string name="intent_editor_extras_label">Extras</string>
+    <string name="intent_editor_extras_add">+ Add extra</string>
+    <string name="intent_editor_extras_key_hint">key</string>
+    <string name="intent_editor_extras_value_hint">value</string>
+    <string name="intent_editor_test_btn">Test now</string>
+    <string name="intent_editor_save_btn">Save</string>
+    <!-- "%1$s" = the permission name. Shown when target requires a runtime grant. -->
+    <string name="intent_editor_test_perm_pending_format">Permission %1$s not yet granted — popping system dialog. Test will fire automatically after you accept.</string>
+    <string name="intent_editor_test_perm_denied">Permission denied. The action can\'t fire until the permission is granted in Android Settings.</string>
+    <string name="intent_editor_targeting_required">Action needs at least one of: Action, Package, or Data URI. Without one, the intent matches nothing.</string>
+    <!-- "%1$d" = how many extras with blank keys were dropped -->
+    <string name="intent_editor_blank_extras_dropped">Removed %1$d extras with empty key — extras must have a key.</string>
+
+    <string name="clippings_empty_initial">Nothing pinned yet.\nShare a link, image, or text to your launcher to keep it here.</string>
+    <string name="clippings_empty_filtered">Nothing matches this filter.\nTap All to see all clippings.</string>
+
+    <!-- Warm-up checkbox: per-action opt-in. When the target was idle for
+         a while, Android's cached-app freezer can suspend its native
+         backend and the broadcast lands but doesn't take effect.
+         Checking this launches the target's UI briefly first. -->
+    <string name="intent_editor_preset_btn">Use a preset…</string>
+    <string name="intent_editor_preset_picker_title">Pick a preset</string>
+    <string name="intent_editor_preset_apply">Apply preset</string>
+
+    <string name="intent_editor_warmup_label">Warm-up</string>
+    <string name="intent_editor_warmup_checkbox_text">Wake up target before firing</string>
+    <string name="intent_editor_warmup_hint">Briefly opens the target app first so its process is unfrozen when the intent lands. When fired from this editor you\'re returned here automatically; when fired from a background profile activation you\'re returned to the home screen. Useful for targets like WireGuard that suspend their backend after idling.</string>
+    <string name="profiles_action_duplicate">Duplicate</string>
+    <string name="profiles_action_delete">Delete</string>
+    <!-- "Duplicate \"%1$s\"" -->
+    <string name="profiles_duplicate_dialog_title_format">Duplicate \"%1$s\"</string>
+    <!-- "%1$s (copy)" -->
+    <string name="profiles_duplicate_default_name_format">%1$s (copy)</string>
+    <!-- "Duplicated as \"%1$s\"" -->
+    <string name="profiles_duplicated_toast_format">Duplicated as \"%1$s\"</string>
+    <string name="profiles_couldnt_duplicate_toast">Couldn\'t duplicate</string>
+    <string name="profiles_rename_dialog_title">Rename profile</string>
+    <!-- "Delete \"%1$s\"?" -->
+    <string name="profiles_delete_dialog_title_format">Delete \"%1$s\"?</string>
+    <string name="profiles_delete_dialog_message">This won\'t change your current home screen — only the saved snapshot is removed.</string>
+    <!-- Trigger picker items -->
+    <string name="profiles_trigger_kind_manual">Manual (no auto-trigger)</string>
+    <string name="profiles_trigger_kind_android_auto">Android Auto / car mode</string>
+    <string name="profiles_trigger_kind_wifi_connected">Connected to specific WiFi…</string>
+    <string name="profiles_trigger_kind_wifi_disconnected">WiFi disconnected (on the road)</string>
+    <string name="profiles_trigger_kind_geofence">Geofence (location)…</string>
+    <string name="profiles_trigger_kind_bt_device">Bluetooth device connected…</string>
+    <string name="profiles_trigger_kind_time_of_day">Time of day…</string>
+    <string name="profiles_trigger_kind_charger">Charger plugged in…</string>
+
+    <!-- Bluetooth picker -->
+    <string name="profiles_bt_picker_title">Pick a paired device</string>
+    <string name="profiles_bt_unavailable_toast">Bluetooth not available on this device</string>
+    <string name="profiles_bt_permission_needed_toast">Grant Bluetooth permission first (Settings → Apps → iappyxOS Launcher → Permissions)</string>
+    <string name="profiles_bt_no_paired_devices_toast">No paired Bluetooth devices yet — pair one in Settings first</string>
+
+    <!-- Charger picker -->
+    <string name="profiles_charger_picker_title">Charger kind</string>
+    <string name="profiles_charger_any">Any charger</string>
+    <string name="profiles_charger_wired">Wired only</string>
+    <string name="profiles_charger_wireless">Wireless only</string>
+
+    <!-- Time-of-day picker -->
+    <string name="profiles_time_picker_title">Active hours</string>
+    <string name="profiles_time_start_label">From</string>
+    <string name="profiles_time_end_label">Until</string>
+    <string name="profiles_time_days_label">Days of week</string>
+    <string name="profiles_time_preset_weekdays">Weekdays</string>
+    <string name="profiles_time_preset_weekend">Weekend</string>
+    <string name="profiles_time_preset_every_day">Every day</string>
+    <string name="profiles_time_no_days_toast">Pick at least one day</string>
+    <string-array name="profiles_time_day_short">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+    <!-- "Trigger for \"%1$s\"" -->
+    <string name="profiles_trigger_dialog_title_format">Trigger for \"%1$s\"</string>
+    <string name="profiles_wifi_ssid_hint">WiFi network name (SSID)</string>
+    <string name="profiles_wifi_ssid_dialog_title">Activate when connected to…</string>
+    <string name="profiles_trigger_saved_toast">Trigger saved</string>
+    <string name="profiles_geofence_register_failed">Couldn\'t enable geofence switching: %1$s</string>
+    <string name="profiles_bg_location_title">Allow location all the time</string>
+    <string name="profiles_bg_location_msg">Geofence auto-switching only works when this app\'s location permission is set to \"Allow all the time\". Open settings to grant it, then this profile will start switching automatically.</string>
+    <string name="profiles_bg_location_open">Open settings</string>
+    <string name="profiles_auto_launch_dialog_title">Auto-launch on activate</string>
+    <!-- Trigger description strings shown on profile tiles. -->
+    <!-- "At \"%1$s\" (geofence)" -->
+    <string name="profiles_trigger_desc_geofence_format">At \"%1$s\" (geofence)</string>
+    <string name="profiles_trigger_desc_android_auto">When phone is in Android Auto / car mode</string>
+    <!-- "Connected to WiFi: %1$s" -->
+    <string name="profiles_trigger_desc_wifi_ssid_format">Connected to WiFi: %1$s</string>
+    <string name="profiles_trigger_desc_wifi_disconnected">When WiFi is disconnected</string>
+    <string name="profiles_trigger_desc_manual">Manual switch only</string>
+    <!-- "Bluetooth: %1$s" — paired-device label -->
+    <string name="profiles_trigger_desc_bt_format">Bluetooth: %1$s</string>
+    <!-- "%1$s %2$s–%3$s" e.g. "Mon-Fri 09:00–17:00" -->
+    <string name="profiles_trigger_desc_time_format">%1$s %2$s–%3$s</string>
+    <string name="profiles_trigger_desc_charger_any">Charger plugged in</string>
+    <string name="profiles_trigger_desc_charger_wired">Wired charger plugged in</string>
+    <string name="profiles_trigger_desc_charger_wireless">Wireless charger plugged in</string>
+
+    <!-- Profile quick-switch chip / bottom sheet (LauncherActivity) -->
+    <string name="profile_quickswitch_title">Switch profile</string>
+    <string name="profile_quickswitch_manage">Manage profiles…</string>
+    <!-- "Profile: %1$s" — toast after a swap -->
+    <string name="profile_swap_toast_format">Profile: %1$s</string>
+    <!-- Compact trigger labels for the chip's tile subtitle. -->
+    <!-- "Wi-Fi · %1$s" -->
+    <string name="profile_chip_wifi_format">Wi-Fi · %1$s</string>
+    <string name="profile_chip_wifi_disconnected">Wi-Fi disconnected</string>
+    <string name="profile_chip_android_auto">Android Auto</string>
+    <string name="profile_chip_geofence">Location</string>
+    <string name="profile_chip_bt_format">BT: %1$s</string>
+    <string name="profile_chip_time_of_day">Time</string>
+    <string name="profile_chip_charger">Charger</string>
+    <string name="profile_chip_manual">Manual</string>
+    <string name="profile_quickswitch_chip_active_check">✓</string>
+
+    <!-- ── Geofence picker ──────────────────────────────────────────── -->
+    <string name="geofence_picker_title">Pick location</string>
+    <string name="geofence_picker_my_location">📍  My location</string>
+    <string name="geofence_picker_label_section">Label</string>
+    <string name="geofence_picker_label_hint">Home / Work / Mom\'s place</string>
+    <string name="geofence_picker_radius_section">Radius</string>
+    <string name="geofence_picker_tap_hint">Tap on the map to place the pin</string>
+    <string name="geofence_picker_tap_first_toast">Tap on the map to place the pin first</string>
+    <string name="geofence_picker_perm_denied_toast">Location permission denied</string>
+    <string name="geofence_picker_loc_unavailable_toast">Location not available — tap on the map instead</string>
+    <string name="geofence_picker_loc_fetch_failed_toast">Couldn\'t fetch location</string>
+
+    <!-- ── App drawer ───────────────────────────────────────────────── -->
+    <string name="drawer_title">All apps</string>
+    <string name="drawer_close_cd">Close app drawer</string>
+    <string name="drawer_search_hint">Search apps</string>
+    <!-- Recent section header -->
+    <string name="drawer_recent_section">Recent</string>
+    <!-- Long-press / context-menu rows -->
+    <string name="drawer_action_add_to_home">Add to home</string>
+    <string name="drawer_action_app_info">App info</string>
+    <string name="drawer_action_uninstall">Uninstall</string>
+    <string name="drawer_shortcut_fallback_label">Shortcut</string>
+    <string name="drawer_shortcut_launch_failed_toast">Couldn\'t launch shortcut</string>
+    <string name="drawer_uninstall_blocked_toast">Couldn\'t uninstall — try App info instead.</string>
+    <!-- Category chip strip — visible categories. -->
+    <string name="drawer_category_all">All</string>
+    <string name="drawer_category_other">Other</string>
+    <string name="drawer_category_games">Games</string>
+    <string name="drawer_category_social">Social</string>
+    <string name="drawer_category_productivity">Productivity</string>
+    <string name="drawer_category_audio">Audio</string>
+    <string name="drawer_category_video">Video</string>
+    <string name="drawer_category_photos">Photos</string>
+    <string name="drawer_category_news">News</string>
+    <string name="drawer_category_maps">Maps</string>
+    <string name="drawer_category_accessibility">Accessibility</string>
+
+    <!-- ── Search panel ─────────────────────────────────────────────── -->
+    <string name="search_title">Search</string>
+    <string name="search_close_cd">Close search</string>
+    <string name="search_hint">Apps, contacts, settings…</string>
+    <string name="search_recent_section">Recent searches</string>
+    <string name="search_frequent_apps_section">Frequent apps</string>
+    <string name="search_no_recent_yet">None yet — try searching above</string>
+    <!-- "Remove %1$s from history" — content description for the × on a recent-search chip -->
+    <string name="search_remove_recent_cd_format">Remove %1$s from history</string>
+    <!-- Result-section headers -->
+    <string name="search_section_calculator">Calculator</string>
+    <string name="search_section_apps">Apps</string>
+    <string name="search_section_contacts">Contacts</string>
+    <string name="search_section_settings">Settings</string>
+    <string name="search_section_web">Web</string>
+    <string name="search_contacts_grant_label">Grant access to contacts</string>
+    <string name="search_contacts_grant_hint">Tap to allow searching your contacts</string>
+    <string name="search_contact_subtitle_fallback">Contact</string>
+    <!-- "= %1$s" — math result -->
+    <string name="search_math_result_format">= %1$s</string>
+    <string name="search_math_tap_to_copy">Tap to copy</string>
+    <!-- "Search the web for \"%1$s\"" — web row title -->
+    <string name="search_web_format">Search the web for \"%1$s\"</string>
+    <string name="search_web_hint">Opens your default search app</string>
+    <!-- "Copied %1$s" -->
+    <string name="search_copied_toast_format">Copied %1$s</string>
+    <string name="search_no_web_app_toast">No web search app installed</string>
+    <!-- "Couldn't open \"%1$s\" — this Settings page may be private to the OS." -->
+    <string name="search_settings_blocked_toast_format">Couldn\'t open \"%1$s\" — this Settings page may be private to the OS.</string>
+
+    <!-- ── Folder overlay ───────────────────────────────────────────── -->
+    <string name="folder_default_name">Folder</string>
+    <string name="folder_overlay_hint">Tap to open · long-press to drag onto home</string>
+
+    <!-- ── Launcher activity (home, edit mode, dock chooser) ─────── -->
+    <!-- First-run hero overlay -->
+    <string name="first_run_welcome_title">Welcome</string>
+    <string name="first_run_hint">Hold anywhere to edit\nSwipe up for apps\nSwipe down to search</string>
+    <string name="first_run_dismiss">Tap to dismiss</string>
+    <!-- Home strip content descriptions -->
+    <string name="home_settings_cd">Settings</string>
+    <string name="home_switch_profile_cd">Switch profile</string>
+    <string name="home_all_pages_cd">All pages</string>
+    <!-- Edit-mode bar -->
+    <string name="edit_bar_title">Edit home</string>
+    <!-- "Edit home · page %1$d/%2$d" — title with current/total pages suffix -->
+    <string name="edit_bar_action_edit">Edit</string>
+    <string name="edit_bar_action_remove">Remove</string>
+    <string name="edit_bar_action_done">Done</string>
+    <!-- Cell label for the "All apps" launcher tile (not the drawer title). -->
+    <string name="cell_all_apps">All apps</string>
+    <!-- Add-slot chevron at end of dock in edit mode -->
+    <string name="dock_add_slot_cd">Add slot</string>
+
+    <!-- Delete-page confirmation dialog -->
+    <!-- "Delete page %1$d?" -->
+    <string name="delete_page_dialog_title_format">Delete page %1$d?</string>
+    <!-- "%1$d item(s) will be removed." -->
+    <string name="delete_page_dialog_message_format">%1$d item(s) will be removed.</string>
+    <!-- Rename-page dialog -->
+    <string name="rename_page_dialog_title">Rename page</string>
+    <string name="rename_page_dialog_hint">e.g. Work · Reading · Travel</string>
+
+    <!-- Set-as-home onboarding dialog -->
+    <string name="set_home_dialog_title">Set as home?</string>
+    <string name="set_home_dialog_message">Use iappyxOS Launcher when you press HOME? You can change this anytime in Android settings.</string>
+    <string name="set_home_action_open_settings">Open settings</string>
+    <string name="set_home_action_later">Later</string>
+
+    <!-- Sweep-orphan-packages toast. "Removed %1$s for apps not on this device" -->
+    <string name="missing_packages_swept_toast_format">Removed %1$s for apps not on this device</string>
+
+    <!-- Generic launcher toasts -->
+    <string name="no_empty_space_toast">No empty space on this page</string>
+    <string name="no_room_here_toast">No room here — try a different spot</string>
+
+    <!-- Add-to-dock chooser sheet -->
+    <string name="dock_add_sheet_title">Add to dock</string>
+    <string name="dock_add_app_icon_title">App icon</string>
+    <string name="dock_add_app_icon_subtitle">Pick from installed apps</string>
+    <string name="dock_add_all_apps_title">All apps</string>
+    <string name="dock_add_all_apps_subtitle">Tile that opens the app drawer</string>
+
+    <!-- App picker dialog titles (passed via Intent.EXTRA_TITLE) -->
+    <string name="app_picker_title_add_to_dock">Add to dock</string>
+    <string name="app_picker_title_add_app">Add app</string>
+
+    <!-- Cell-kind labels in the edit-mode "describe selection" suffix.
+         Single-word kind names so the title reads e.g. "Spotify · 1×1 · page 1/3". -->
+    <string name="cell_kind_app">App</string>
+    <string name="cell_kind_widget">Widget</string>
+    <string name="cell_kind_ai_widget">AI widget</string>
+
+    <!-- ── Common chip / button labels reused across manage tabs ───── -->
+    <string name="action_refine">Refine</string>
+    <string name="action_send">Send</string>
+    <string name="action_open_settings">Open Settings</string>
+    <string name="action_open_picker">Open picker</string>
+    <string name="action_later">Later</string>
+    <string name="action_refine_with_ai">Refine with AI</string>
+    <string name="action_active_pill">Active</string>
+    <string name="action_in_use">In use</string>
+    <string name="action_edit_name_desc">Edit name &amp; description</string>
+    <string name="hint_name">Name</string>
+    <string name="hint_description">Description</string>
+    <!-- "Refining: %1$s…" — the in-progress dialog message -->
+    <string name="refine_in_progress_message_format">Refining: %1$s…</string>
+    <string name="refine_done_toast">Refined</string>
+    <string name="refine_failed_dialog_title">Couldn\'t refine</string>
+    <!-- "Unexpected: %1$s" -->
+    <string name="unexpected_error_toast_format">Unexpected: %1$s</string>
+    <string name="unknown_error_short">unknown</string>
+
+    <!-- ── Command Panel (AI tab) ──────────────────────────────────── -->
+    <!-- Tab labels in CommandPanelHost -->
+    <string name="tab_widgets">Widgets</string>
+    <string name="tab_wallpapers">Wallpapers</string>
+    <string name="tab_transitions">Transitions</string>
+    <string name="tab_icons">Icons</string>
+    <!-- PLUGINS: BEGIN -->
+    <string name="tab_plugins">Plugins</string>
+    <!-- PLUGINS: END -->
+    <!-- Empty-state hero -->
+    <string name="cmd_hero_title">Ask iappyxOS Launcher</string>
+    <string name="cmd_hero_subtitle">Tell the launcher what to do — make a widget, add an app, organise pages, generate a live wallpaper.</string>
+    <!-- Mode toggle chips -->
+    <string name="cmd_mode_chat">Chat</string>
+    <string name="cmd_mode_manual">Manual</string>
+    <!-- Working / status pills -->
+    <string name="cmd_thinking">Thinking…</string>
+    <string name="cmd_replying">Replying…</string>
+    <string name="cmd_cancel_btn">Cancel</string>
+    <string name="cmd_generating_chars">Generating… %1$d chars</string>
+    <!-- Input field -->
+    <string name="cmd_input_hint">Tell the launcher…</string>
+    <string name="cmd_image_attached">Image attached</string>
+    <!-- Manage tabs: shared header chrome -->
+    <string name="manage_delete_confirm_format">%1$s\n\nThis can’t be undone.</string>
+    <string name="manage_tab_title_widgets">Widgets</string>
+    <string name="manage_tab_title_wallpapers">Wallpapers</string>
+    <string name="manage_tab_title_transitions">Transitions</string>
+    <string name="manage_tab_title_icon_styles">Icon styles</string>
+    <!-- Manage tabs: AI button popup -->
+    <!-- Manage tabs: contextual icon button content descriptions -->
+    <string name="manage_icon_cd_new">Generate new</string>
+    <string name="manage_icon_cd_share">Share</string>
+    <string name="manage_icon_cd_import">Import from device</string>
+    <!-- Manage tabs: short labels under the top-bar icons -->
+    <string name="manage_icon_label_new">New</string>
+    <string name="manage_icon_label_share">Share</string>
+    <string name="manage_icon_label_import">Import</string>
+    <!-- Manage tabs: short labels under the per-card chip icons -->
+    <string name="manage_card_label_place">Place</string>
+    <string name="manage_card_label_use">Use</string>
+    <string name="manage_card_label_refine">Refine</string>
+    <string name="manage_card_label_edit">Edit</string>
+    <string name="manage_card_label_files">Files</string>
+    <string name="manage_card_label_delete">Delete</string>
+    <string name="manage_card_label_share_short">Share</string>
+    <!-- Title of the Refine-with-AI dialog when the icon-filters tab uses
+         the shared base helper (id needed because the existing format
+         string takes the entry title as a positional arg, but the base
+         helper doesn't pass per-entry context). -->
+    <string name="manage_icons_refine_dialog_format_id">Refine icon style</string>
+    <!-- Manual AI: forbidden-API warning dialog -->
+    <string name="manual_forbidden_title">Forbidden Web APIs detected</string>
+    <string name="manual_forbidden_intro">The pasted code uses APIs that don\'t work in the launcher\'s WebView sandbox. They usually fail silently:</string>
+    <string name="manual_forbidden_fix_header">How to fix</string>
+    <string name="manual_forbidden_fix_preamble">Paste this into your AI chat to get a corrected version:</string>
+    <string name="manual_forbidden_copy_hint">Copy hint</string>
+    <string name="manual_forbidden_copied_toast">Copied — paste into your AI chat</string>
+    <string name="manual_forbidden_save_anyway">Save anyway</string>
+    <string name="cmd_clear_history">Clear chat history</string>
+    <string name="cmd_clear_history_confirm">Permanently delete all chat messages? This cannot be undone.</string>
+    <string name="cmd_history_cleared">Chat history cleared</string>
+    <string name="cmd_history_subtitle_count">%1$d messages • %2$s</string>
+    <string name="cmd_history_subtitle_empty">No saved messages</string>
+    <!-- Suggestion chips -->
+    <string name="cmd_suggest_water_widget">Make a water tracker widget</string>
+    <string name="cmd_suggest_ocean_wallpaper">Generate a foggy ocean wallpaper</string>
+    <string name="cmd_suggest_add_maps">Add Maps to my home screen</string>
+    <string name="cmd_suggest_weather">Show me the weather</string>
+    <!-- No-API-key empty state -->
+    <string name="cmd_no_key_message">Add your Anthropic API key in Settings to chat with the launcher AI.</string>
+    <string name="cmd_or_use_manual">Or use manual AI</string>
+    <!-- Manual-mode picker card -->
+    <string name="cmd_manual_title">Use manual AI</string>
+    <string name="cmd_manual_subtitle">Pick what to generate. We\'ll prepare a prompt you can paste into any AI chat, then bring the result back.</string>
+    <!-- Manual-mode option cards -->
+    <string name="cmd_option_widget_title">Widget</string>
+    <string name="cmd_option_widget_subtitle">A live HTML/JS card on your home screen</string>
+    <string name="cmd_option_wallpaper_title">Wallpaper</string>
+    <string name="cmd_option_wallpaper_subtitle">A live wallpaper rendered behind the home grid</string>
+    <string name="cmd_option_transition_title">Page transition</string>
+    <string name="cmd_option_transition_subtitle">How home pages animate when you swipe between them</string>
+    <string name="cmd_option_icon_title">Icon style</string>
+    <string name="cmd_option_icon_subtitle">A visual treatment applied to every app icon on the home screen</string>
+
+    <!-- ── Manage Widgets tab ─────────────────────────────────────── -->
+    <string name="manage_widgets_empty">No widgets yet — tap Generate to make one.</string>
+    <!-- AI prompt prefill seed when the user hits "Generate new widget" -->
+    <string name="manage_widgets_prefill_prompt">Generate a widget that </string>
+    <string name="manage_widgets_placed_toast">Placed on home</string>
+    <string name="manage_widgets_no_space_toast">No free 2×2 space — tidy your grid first</string>
+    <string name="manage_widgets_delete_dialog_title">Delete widget?</string>
+
+    <!-- ── Manage Wallpapers tab ──────────────────────────────────── -->
+    <string name="manage_wallpapers_empty">No wallpapers — tap Generate above.</string>
+    <string name="manage_wallpapers_set_picker_hint">Tap to open the system picker — your selection here will apply once.</string>
+    <string name="manage_wallpapers_prefill_prompt">Generate a live wallpaper that </string>
+    <string name="manage_wallpapers_set_dialog_title">Set iappyxOS Live as wallpaper</string>
+    <string name="manage_wallpapers_set_dialog_message">Your selection is saved. To actually see it, set iappyxOS Live as the active wallpaper.</string>
+    <!-- "Switched to %1$s" -->
+    <string name="manage_wallpapers_switched_toast_format">Switched to %1$s</string>
+    <string name="manage_wallpapers_no_picker_toast">No wallpaper picker available</string>
+
+    <!-- ── Manage Transitions tab ─────────────────────────────────── -->
+    <string name="manage_transitions_empty">No transitions — tap Generate above.</string>
+    <string name="manage_transitions_prefill_prompt">Generate a page transition that </string>
+    <!-- "Transition: %1$s" — toast after switching -->
+    <string name="manage_transitions_switched_toast_format">Transition: %1$s</string>
+    <string name="manage_transitions_delete_dialog_title">Delete transition?</string>
+    <string name="manage_transitions_deleted_toast">Deleted</string>
+    <string name="manage_transitions_delete_failed_toast">Couldn\'t delete (bundled or active?)</string>
+    <string name="manage_transitions_open_failed_toast">Couldn\'t open file</string>
+
+    <!-- ── Manage Icon Filters tab ────────────────────────────────── -->
+    <string name="manage_icons_empty">Tap Generate to create your first icon style.</string>
+    <string name="manage_icons_prefill_prompt">Generate an icon style that </string>
+    <string name="manage_icons_refine_hint">What should change?</string>
+    <!-- "Refine \"%1$s\"" -->
+    <string name="manage_icons_refining_toast">Refining…</string>
+    <!-- "Refine failed: %1$s" -->
+    <string name="manage_icons_refine_failed_toast_format">Refine failed: %1$s</string>
+    <string name="manage_icons_read_failed">Couldn\'t read file</string>
+    <!-- "That's a %1$s, not an icon style." — kind label is from BundleExporter -->
+    <string name="manage_icons_wrong_kind_format">That\'s a %1$s, not an icon style.</string>
+    <!-- "Imported \"%1$s\"" -->
+    <string name="manage_icons_imported_toast_format">Imported \"%1$s\"</string>
+    <!-- "Import failed: %1$s" -->
+    <string name="manage_icons_import_failed_toast_format">Import failed: %1$s</string>
+    <!-- "Export failed: %1$s" -->
+    <string name="manage_icons_rename_dialog_title">Rename icon style</string>
+    <!-- "Delete \"%1$s\"?" -->
+    <string name="manage_icons_delete_dialog_title_format">Delete \"%1$s\"?</string>
+    <string name="manage_icons_delete_dialog_message">This icon style will be removed from your library.</string>
+
+    <!-- ── App picker / Stock widget picker ───────────────────────── -->
+    <string name="app_picker_default_title">Choose app</string>
+    <string name="app_picker_search_hint">Search apps</string>
+    <string name="stock_widget_picker_title">Choose a widget</string>
+    <string name="stock_widget_picker_search_hint">Search widgets</string>
+
+    <!-- ── QR Send / Receive ──────────────────────────────────────── -->
+    <string name="qr_send_title">Share via QR</string>
+    <!-- "Couldn't build bundle: %1$s" -->
+    <string name="qr_couldnt_build_bundle_format">Couldn\'t build bundle: %1$s</string>
+    <!-- "Frame %1$d / %2$d" -->
+    <string name="qr_frame_counter_format">Frame %1$d / %2$d</string>
+    <string name="qr_send_hold_hint">Hold near the receiving device</string>
+    <string name="qr_receive_title">Receive via QR</string>
+    <string name="qr_receive_hint">Point camera at the QR code</string>
+    <string name="qr_receive_steady_hint">Hold steady — frames cycle on the other phone.</string>
+    <string name="qr_camera_perm_required_toast">Camera permission required to scan QR</string>
+    <!-- "Camera failed: %1$s" -->
+    <string name="qr_camera_failed_toast_format">Camera failed: %1$s</string>
+    <!-- "Saved: %1$s" — bundle title -->
+    <string name="qr_saved_status_format">Saved: %1$s</string>
+    <!-- "Open the %1$s tab to see it" — kind label -->
+    <string name="bundle_open_tab_hint_format">Open the %1$s tab to see it</string>
+    <!-- "Decode failed: %1$s" -->
+    <string name="qr_decode_failed_status_format">Decode failed: %1$s</string>
+
+    <!-- ── Nearby (WiFi Direct) Send / Receive ────────────────────── -->
+    <string name="nearby_send_title">Share Nearby</string>
+    <string name="nearby_receive_title">Receive Nearby</string>
+    <string name="nearby_starting_wifi_direct">Starting WiFi Direct…</string>
+    <string name="nearby_looking_for_devices">Looking for nearby devices…</string>
+    <string name="nearby_open_share_on_other">Open Share Nearby on the other phone.</string>
+    <string name="nearby_open_receive_on_other">Open Receive Nearby on the other phone.</string>
+    <string name="nearby_waiting_for_receiver">Waiting for receiver…</string>
+    <string name="nearby_sending">Sending…</string>
+    <string name="nearby_sending_hint">Hold on — keep both phones close.</string>
+    <string name="nearby_sent">Sent!</string>
+    <!-- "The receiver has the %1$s." — kind label -->
+    <string name="nearby_sent_hint_format">The receiver has the %1$s.</string>
+    <string name="nearby_couldnt_start">Couldn\'t start</string>
+    <string name="nearby_try_again">Try again</string>
+    <string name="nearby_couldnt_connect">Couldn\'t connect</string>
+    <string name="nearby_tap_to_connect">Tap to connect</string>
+    <!-- Plural for "%1$d nearby device(s)". Translators: provide one/other forms. -->
+    <plurals name="nearby_devices_count_format">
+        <item quantity="one">%1$d nearby device</item>
+        <item quantity="other">%1$d nearby devices</item>
+    </plurals>
+    <!-- "Connecting to %1$s…" -->
+    <string name="nearby_connecting_format">Connecting to %1$s…</string>
+    <string name="nearby_downloading">Downloading…</string>
+    <!-- "Downloading… %1$d%%" — note the %% to escape literal %. -->
+    <string name="nearby_downloading_pct_format">Downloading… %1$d%%</string>
+    <string name="nearby_download_failed">Download failed</string>
+    <string name="nearby_install_failed">Install failed</string>
+    <string name="nearby_how_it_works_title">How nearby works</string>
+    <string name="nearby_how_it_works_body">Both phones briefly turn on WiFi Direct. The receiver picks your phone from a list and pulls the bundle. Nothing is uploaded to the internet.</string>
+    <!-- "Couldn't build bundle: %1$s" -->
+    <string name="nearby_couldnt_build_bundle_format">Couldn\'t build bundle: %1$s</string>
+
+    <!-- ── Showcase browser ───────────────────────────────────────── -->
+    <string name="showcase_title">Showcase</string>
+    <string name="showcase_loading">Loading showcase…</string>
+    <!-- "Couldn't load showcase: %1$s" -->
+    <string name="showcase_load_failed_format">Couldn\'t load showcase: %1$s</string>
+    <!-- Empty-state hints per filter -->
+    <string name="showcase_empty_available">Everything in this category is already installed.</string>
+    <string name="showcase_empty_installed">Nothing in this category is installed yet.</string>
+    <string name="showcase_empty_all">No entries yet.</string>
+    <string name="showcase_built_in_badge">Built-in</string>
+    <!-- "Uses: %1$s" — comma-separated attribution list -->
+    <string name="showcase_uses_attribution_format">Uses: %1$s</string>
+    <!-- Install button states -->
+    <string name="showcase_action_install">Install</string>
+    <string name="showcase_action_install_again">Install again</string>
+    <string name="showcase_action_install_copy">Install copy</string>
+    <string name="showcase_action_installing">Installing…</string>
+    <!-- "Install failed: %1$s" -->
+    <string name="showcase_install_failed_format">Install failed: %1$s</string>
+    <!-- Filter chips -->
+    <string name="showcase_filter_all">All</string>
+    <string name="showcase_filter_available">Available</string>
+    <string name="showcase_filter_installed">Installed</string>
+    <!-- Generic "unknown error" fallback used by showcase + others. -->
+    <string name="error_unknown">unknown error</string>
+
+    <!-- ── Generic AI / shared dialogs ──────────────────────────── -->
+    <string name="dialog_ai_rewriting_title">AI is rewriting</string>
+
+    <!-- ── Manage tab — import / save toasts (used across all 4 tabs) -->
+    <string name="manage_open_failed_toast">Couldn\'t open file</string>
+    <!-- "Read failed: %1$s" -->
+    <string name="manage_read_failed_format">Read failed: %1$s</string>
+    <string name="manage_imported_toast">Imported</string>
+    <!-- "Couldn't read zip: %1$s" -->
+    <string name="manage_read_zip_failed_format">Couldn\'t read zip: %1$s</string>
+    <string name="manage_zip_no_widget_html">Zip didn\'t contain widget.html</string>
+    <string name="manage_not_a_transition">Doesn\'t look like a transition spec</string>
+    <string name="manage_not_a_wallpaper">Doesn\'t look like a wallpaper file</string>
+    <!-- "Save failed: %1$s" -->
+    <string name="manage_save_failed_format">Save failed: %1$s</string>
+
+    <!-- HomeCellContextMenu — single failed shortcut launch -->
+    <string name="cell_shortcut_launch_failed_toast">Couldn\'t launch shortcut</string>
+    <!-- Long-press context menu rows -->
+    <string name="cell_action_remove_from_home">Remove from home</string>
+    <string name="cell_action_customize_home">Customize home</string>
+    <string name="cell_action_change_icon">Change icon</string>
+    <string name="cell_action_rename">Rename</string>
+    <string name="notif_reply_send">Send</string>
+    <string name="cell_rename_dialog_title">Rename app</string>
+    <string name="cell_rename_dialog_reset">Reset</string>
+    <string name="cell_action_edit_widget">Edit widget</string>
+
+    <!-- ── ShareSheet (per-card "Share" picker) ──────────────────── -->
+    <!-- "Share %1$s" — kind label -->
+    <string name="share_sheet_title_format">Share %1$s</string>
+    <string name="share_sheet_subtitle">Pick how to send it</string>
+    <string name="share_save_to_file">Save to file</string>
+    <string name="share_save_to_file_subtitle">Hand off to the system share sheet — Drive, Files, Gmail, etc.</string>
+    <!-- "Couldn't share: %1$s" -->
+    <string name="share_couldnt_share_format">Couldn\'t share: %1$s</string>
+    <string name="share_nearby_title">Share Nearby</string>
+    <string name="share_nearby_subtitle">WiFi Direct between two phones — no internet involved.</string>
+    <string name="share_via_qr_title">Share via QR</string>
+    <string name="share_via_qr_subtitle">Cycle the bundle as QR frames; the receiver scans them with their camera.</string>
+    <string name="share_submit_showcase_title">Submit to Showcase</string>
+    <!-- "Open a pull request adding this %1$s to the iappyxOS showcase repo on GitHub." -->
+    <string name="share_submit_showcase_subtitle_format">Open a pull request adding this %1$s to the iappyxOS showcase repo on GitHub.</string>
+
+    <!-- ── ReceiveSheet (per-tab Receive picker) ────────────────── -->
+    <!-- "Receive %1$s" -->
+    <string name="receive_sheet_title_format">Receive %1$s</string>
+    <string name="receive_sheet_subtitle">Pick how it\'s coming in</string>
+    <string name="receive_from_file_title">From file</string>
+    <string name="receive_from_file_subtitle">Open a .iappyx-* bundle saved on this device.</string>
+    <string name="receive_nearby_title">Receive Nearby</string>
+    <string name="receive_nearby_subtitle">Pull from another phone over WiFi Direct.</string>
+    <string name="receive_via_qr_title">Receive via QR</string>
+    <string name="receive_via_qr_subtitle">Scan the cycling QR frames from another phone.</string>
+    <string name="receive_browse_showcase_title">Browse Showcase</string>
+    <!-- "Pick a community-built %1$s to install. Public repo — no account needed." -->
+    <string name="receive_browse_showcase_subtitle_format">Pick a community-built %1$s to install. Public repo — no account needed.</string>
+
+    <!-- ── ShowcaseSubmitDialog (GitHub PR flow) ──────────────────── -->
+    <string name="submit_token_needed_title">GitHub token needed</string>
+    <string name="submit_open_settings">Open Settings</string>
+    <string name="submit_couldnt_read_sources">Couldn\'t read source files</string>
+    <!-- "Submit %1$s to Showcase" — kind label -->
+    <string name="submit_dialog_title_format">Submit %1$s to Showcase</string>
+    <string name="submit_action">Submit</string>
+    <string name="submit_progress_title">Submitting…</string>
+    <string name="submit_progress_message">Forking, branching, opening pull request…</string>
+    <string name="submit_pr_opened_title">Pull request opened</string>
+    <string name="submit_action_close">Close</string>
+    <string name="submit_action_view_pr">View PR</string>
+    <string name="submit_failed_title">Submission failed</string>
+    <string name="submit_token_needed_long_message">Submitting to the Showcase opens a pull request on GitHub, which needs a Personal Access Token. Generate one at github.com/settings/tokens (scope: public_repo) and paste it into Settings → GitHub token.</string>
+    <string name="submit_field_title">Title</string>
+    <string name="submit_field_slug">Slug (folder name)</string>
+    <string name="submit_field_description">Description</string>
+
+    <!-- Language picker (in Settings → Home layout card). Native names so
+         English / Nederlands are recognisable regardless of current UI. -->
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_dialog_title">Language</string>
+    <string name="settings_language_system">System default</string>
+    <string name="settings_language_english" translatable="false">English</string>
+    <string name="settings_language_nederlands" translatable="false">Nederlands</string>
+
+    <!-- One-time warning when a widget makes its first HTTPS request with
+         certificate verification disabled (trustAllCerts: true). Visible to
+         the user so a malicious widget can't quietly MITM its own traffic. -->
+    <string name="widget_trustall_warning_format">%1$s is using insecure HTTPS — anyone on the network could intercept its traffic.</string>
+    <string name="widget_trustall_warning_fallback_name">A widget</string>
+
+    <!-- Settings → About entry point + the About screen itself. -->
+    <string name="settings_about_label">About</string>
+    <string name="settings_about_hint">Version, license, attributions, and privacy</string>
+    <string name="about_tagline">Programmable Android launcher with AI-generated widgets, wallpapers, and live customization.</string>
+    <string name="about_version_format">Version %1$s (build %2$d)</string>
+    <string name="about_license_label">License</string>
+    <string name="about_license_value">MIT</string>
+    <string name="about_source_label">Source code</string>
+    <string name="about_source_url" translatable="false">github.com/iappyx/iappyxOS-Launcher</string>
+    <string name="about_acknowledgements_label">Open-source libraries</string>
+    <string name="about_acknowledgements_count_format">%1$d projects</string>
+    <string name="about_privacy_title">Privacy</string>
+    <string name="about_privacy_body">All data lives on your device. AI keys are stored in Android\'s hardware-backed encrypted preferences. No analytics, no tracking, no telemetry. Network requests go only to the AI provider you configured (when you ask the AI to do something) and to GitHub raw content (when you open the Showcase browser). Push notifications, when used by a widget, route through Firebase Cloud Messaging.</string>
+    <string name="about_footer">Made by an indie developer in the Netherlands · © 2026 iappyx</string>
+    <string name="about_url_copied">URL copied</string>
+    <string name="about_support_label">Support development</string>
+    <string name="about_support_value">Buy me a coffee</string>
+    <string name="about_support_url" translatable="false">https://ko-fi.com/iappyx</string>
+    <string name="support_prompt_title">Enjoying iappyxOS Launcher?</string>
+    <string name="support_prompt_body">It\'s completely free — no ads, no tracking, no subscriptions. If it\'s earned a spot on your phone, a coffee helps keep it going.</string>
+    <string name="support_prompt_positive">Buy me a coffee</string>
+    <string name="support_prompt_later">Maybe later</string>
+    <string name="support_prompt_no">No thanks</string>
+
+    <string name="ack_title">Open-source libraries</string>
+    <!-- Bundled-files manager (per widget). Lets the user attach data
+         files to a widget so its HTML can read them via
+         iappyx.storage.readAsset() / extractAsset() / listAssets(). -->
+    <string name="bundle_files_dialog_title_format">Files for %1$s</string>
+    <string name="bundle_files_empty">No bundled files yet.\nAdd one to make it readable from the widget.</string>
+    <string name="bundle_files_empty_total">No files</string>
+    <string name="bundle_files_total_format">%1$d file(s) · %2$s total</string>
+    <string name="bundle_files_add_file">Add file</string>
+    <string name="bundle_files_added_format">Added %1$s (%2$s)</string>
+    <string name="bundle_files_too_large_format">File is too large. Max %1$s per file.</string>
+    <string name="bundle_files_add_failed_format">Couldn\'t add the file: %1$s</string>
+    <string name="bundle_files_overwrite_title">Replace file?</string>
+    <string name="bundle_files_overwrite_message_format">A file named %1$s already exists in this widget\'s bundle. Replace it?</string>
+    <string name="bundle_files_remove_title">Remove file?</string>
+    <string name="bundle_files_remove_message_format">Permanently remove %1$s from this widget\'s bundle?</string>
+
+    <!-- Showcase install progress for entries with bundled resources. -->
+    <string name="showcase_action_installing_pct_format">Installing… %1$d%%</string>
+
+    <string name="ack_license_apache2" translatable="false">Apache 2.0</string>
+    <string name="ack_license_bsd2" translatable="false">BSD 2-clause</string>
+    <string name="ack_license_bsd3" translatable="false">BSD 3-clause</string>
+    <string name="ack_license_lgpl21" translatable="false">LGPL 2.1+</string>
+    <string name="ack_license_mit" translatable="false">MIT</string>
+    <string name="ack_license_ofl" translatable="false">OFL 1.1</string>
+
+    <!-- REMOTE EDIT FEATURE: BEGIN. To remove the feature, delete every
+         string between these markers. -->
+    <string name="settings_remoteedit_label">Edit on another device</string>
+    <string name="settings_remoteedit_subtitle">Open a browser on a tablet or computer to drag widgets around and chat with the AI</string>
+    <string name="remoteedit_title">Edit on another device</string>
+    <string name="remoteedit_open_url_prompt">On the other device, open this URL in a browser:</string>
+    <string name="remoteedit_code_prompt">Then enter this 6-digit code:</string>
+    <string name="remoteedit_status_starting">Starting…</string>
+    <string name="remoteedit_status_waiting">Waiting for connection…</string>
+    <string name="remoteedit_status_connected_format">Connected · %1$s</string>
+    <string name="remoteedit_status_failed">Failed to start. Make sure WiFi is on.</string>
+    <string name="remoteedit_disconnect">Disconnect</string>
+    <!-- Notification + service strings. Updated for v2 of the feature
+         where a foreground service keeps sharing alive while the
+         user does other things. -->
+    <string name="remoteedit_warning">Closing this screen keeps the browser session alive in the background. Tap “Stop sharing” or the notification’s Stop button to end the session.</string>
+    <string name="remoteedit_stop_sharing">Stop sharing</string>
+    <string name="remoteedit_notif_channel">iappyxOS Editor sharing</string>
+    <string name="remoteedit_notif_channel_desc">Shown while a laptop or tablet can edit your launcher over WiFi.</string>
+    <string name="remoteedit_notif_title">iappyxOS Editor active</string>
+    <string name="remoteedit_notif_default_text">Editor is running. Tap to open.</string>
+    <string name="remoteedit_notif_stop">Stop</string>
+    <string name="remoteedit_overlay_show">Show floating status dot</string>
+    <string name="remoteedit_overlay_hide">Hide floating status dot</string>
+    <string name="remoteedit_overlay_perm_title">Allow floating overlay?</string>
+    <string name="remoteedit_overlay_perm_message">A small dot at the side of your screen lets you see at a glance that sharing is active. Tap it any time to come back to this screen. Requires the Android "Display over other apps" permission.</string>
+    <string name="remoteedit_overlay_perm_grant">Open settings</string>
+    <string name="remoteedit_start_sharing">Start sharing</string>
+    <string name="remoteedit_idle_intro">Share this launcher with a laptop or tablet on the same WiFi. While sharing is on, you can keep using your phone normally — the floating dot lets you see at a glance that it\'s still active.</string>
+    <string name="remoteedit_idle_subtitle">Sharing is off.</string>
+    <!-- REMOTE EDIT FEATURE: END -->
+    <!-- QUICK WIDGETS: BEGIN. To remove, delete every string between the
+         BEGIN / END markers in this file. -->
+    <!-- Static manifest labels (no format placeholders — Android can't
+         substitute them at install time). The runtime label gets set per
+         tile via Tile.setLabel(). -->
+    <string name="quickwidget_tile1_label">Quick Widget 1</string>
+    <string name="quickwidget_tile2_label">Quick Widget 2</string>
+    <string name="quickwidget_tile3_label">Quick Widget 3</string>
+    <string name="quickwidget_tile4_label">Quick Widget 4</string>
+    <string name="quickwidget_tile5_label">Quick Widget 5</string>
+    <!-- Formatted version used at runtime for the "unbound" tile state
+         and the picker title bar. -->
+    <string name="quickwidget_tile_unbound_label">Quick Widget %1$d</string>
+    <string name="quickwidget_panel_title">iappyxOS Quick Widget</string>
+    <string name="settings_quickwidgets_label">Quick Widgets</string>
+    <string name="settings_quickwidgets_subtitle">Bind iappyxOS widgets to Quick Settings tiles</string>
+    <string name="quickwidget_manager_title">Quick Widget tiles</string>
+    <string name="quickwidget_manager_intro">Each slot below corresponds to a Quick Settings tile you can add to your notification shade. Tap a slot to pick a widget; tap the tile in your shade to launch the widget as a panel.</string>
+    <string name="quickwidget_slot_empty">Tap to pick a widget</string>
+    <string name="quickwidget_slot_label">Slot %1$d</string>
+    <!-- QUICK WIDGETS: END -->
+    <string name="settings_restart_launcher_label">Restart launcher</string>
+    <string name="settings_restart_launcher_subtitle">Force-quit and relaunch the home app</string>
+    <string name="settings_restart_launcher_confirm_title">Restart launcher?</string>
+    <string name="settings_restart_launcher_confirm_message">The launcher process will be killed and the home app will reopen. Any unsaved interactions inside widgets may be lost.</string>
+    <string name="settings_default_launcher_label">Default home app</string>
+    <string name="settings_default_launcher_subtitle_current">iappyxOS is your current default — tap to change.</string>
+    <string name="settings_default_launcher_subtitle_not_default">iappyxOS is NOT your default — tap to set.</string>
+</resources>

@@ -1,0 +1,289 @@
+<!-- Built with iappyxOS Launcher -->
+<!doctype html><html><head><title>Magnetic Neon Particles</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#000;overflow:hidden;">
+<canvas id="c" style="position:fixed;inset:0;width:100vw;height:100vh;display:block;"></canvas>
+<script>
+(function(){
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  function fit(){
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+  }
+  fit();
+  window.onresize = fit;
+
+  // State
+  let visible = true;
+  let accelX = 0, accelY = 0, accelZ = 9.8;
+  let prevAccelX = 0, prevAccelY = 0, prevAccelZ = 9.8;
+  let pageOffset = 0;
+  let shakeEnergy = 0;
+  let lastTime = 0;
+
+  // Bridge
+  if(window.iappyx){
+    iappyx.onVisibility = v => { visible = !!v; };
+    iappyx.onPageOffset = v => { pageOffset = v; };
+    iappyx.onAccelerometer = (x, y, z) => {
+      prevAccelX = accelX; prevAccelY = accelY; prevAccelZ = accelZ;
+      accelX = accelX * 0.7 + x * 0.3;
+      accelY = accelY * 0.7 + y * 0.3;
+      accelZ = accelZ * 0.7 + (z||9.8) * 0.3;
+      const dx = x - prevAccelX, dy = y - prevAccelY, dz = (z||9.8) - prevAccelZ;
+      const jerk = Math.sqrt(dx*dx + dy*dy + dz*dz);
+      shakeEnergy = Math.min(1, shakeEnergy + jerk * 0.04);
+    };
+    iappyx.enableAccelerometer(true);
+  }
+
+  // Colors
+  const COLORS = [
+    {r:0,   g:200, b:255},  // electric blue
+    {r:255, g:0,   b:200},  // hot pink
+    {r:0,   g:255, b:220},  // cyan
+    {r:100, g:0,   b:255},  // violet
+    {r:255, g:60,  b:120},  // rose
+    {r:0,   g:180, b:255},  // sky blue
+  ];
+
+  function randColor(){
+    return COLORS[Math.floor(Math.random() * COLORS.length)];
+  }
+
+  // Magnetic attraction points
+  const NUM_ATTRACTORS = 4;
+  const attractors = [];
+  for(let i = 0; i < NUM_ATTRACTORS; i++){
+    attractors.push({
+      x: Math.random() * innerWidth,
+      y: Math.random() * innerHeight,
+      vx: (Math.random()-0.5)*0.3,
+      vy: (Math.random()-0.5)*0.3,
+      strength: 20 + Math.random()*40,
+      phase: Math.random()*Math.PI*2
+    });
+  }
+
+  function updateAttractors(dt){
+    const t = performance.now()*0.001;
+    for(let a of attractors){
+      a.phase += dt * 0.15;
+      a.vx += Math.sin(a.phase * 1.3 + t*0.2) * 0.02;
+      a.vy += Math.cos(a.phase * 0.9 + t*0.17) * 0.02;
+      a.vx *= 0.98;
+      a.vy *= 0.98;
+      a.x += a.vx;
+      a.y += a.vy;
+      if(a.x < 0){ a.x=0; a.vx=Math.abs(a.vx); }
+      if(a.x > canvas.width){ a.x=canvas.width; a.vx=-Math.abs(a.vx); }
+      if(a.y < 0){ a.y=0; a.vy=Math.abs(a.vy); }
+      if(a.y > canvas.height){ a.y=canvas.height; a.vy=-Math.abs(a.vy); }
+    }
+  }
+
+  // Particles
+  const NUM_PARTICLES = 280;
+  const particles = [];
+
+  function makeParticle(x, y, explode){
+    const c = randColor();
+    const speed = explode ? (3 + Math.random()*10) : (Math.random()*1.5);
+    const angle = Math.random()*Math.PI*2;
+    return {
+      x: x !== undefined ? x : Math.random()*canvas.width,
+      y: y !== undefined ? y : Math.random()*canvas.height,
+      vx: Math.cos(angle)*speed,
+      vy: Math.sin(angle)*speed,
+      r: c.r, g: c.g, b: c.b,
+      size: 1.5 + Math.random()*2.5,
+      trail: [],
+      maxTrail: 8 + Math.floor(Math.random()*10),
+      mass: 0.5 + Math.random()*1.5,
+      attractorIndex: Math.floor(Math.random()*NUM_ATTRACTORS),
+      life: 1,
+    };
+  }
+
+  for(let i = 0; i < NUM_PARTICLES; i++){
+    particles.push(makeParticle());
+  }
+
+  function explode(cx, cy, count){
+    for(let i = 0; i < count; i++){
+      if(particles.length < 600){
+        particles.push(makeParticle(cx, cy, true));
+      }
+    }
+  }
+
+  // Trail rendering helper
+  function drawTrail(p){
+    if(p.trail.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(p.trail[0].x, p.trail[0].y);
+    for(let i = 1; i < p.trail.length; i++){
+      ctx.lineTo(p.trail[i].x, p.trail[i].y);
+    }
+    const alpha = 0.6;
+    const grad = ctx.createLinearGradient(
+      p.trail[0].x, p.trail[0].y,
+      p.trail[p.trail.length-1].x, p.trail[p.trail.length-1].y
+    );
+    grad.addColorStop(0, `rgba(${p.r},${p.g},${p.b},0)`);
+    grad.addColorStop(1, `rgba(${p.r},${p.g},${p.b},${alpha})`);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = p.size * 0.8;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  function drawGlow(p){
+    const x = p.x, y = p.y, s = p.size;
+    // Outer glow
+    const g1 = ctx.createRadialGradient(x,y,0,x,y,s*5);
+    g1.addColorStop(0, `rgba(${p.r},${p.g},${p.b},0.35)`);
+    g1.addColorStop(1, `rgba(${p.r},${p.g},${p.b},0)`);
+    ctx.beginPath();
+    ctx.arc(x,y,s*5,0,Math.PI*2);
+    ctx.fillStyle = g1;
+    ctx.fill();
+    // Core
+    const g2 = ctx.createRadialGradient(x,y,0,x,y,s);
+    g2.addColorStop(0, `rgba(255,255,255,0.9)`);
+    g2.addColorStop(0.4, `rgba(${p.r},${p.g},${p.b},0.9)`);
+    g2.addColorStop(1, `rgba(${p.r},${p.g},${p.b},0)`);
+    ctx.beginPath();
+    ctx.arc(x,y,s,0,Math.PI*2);
+    ctx.fillStyle = g2;
+    ctx.fill();
+  }
+
+  let lastShakeTime = 0;
+  let frameCount = 0;
+
+  function tick(ts){
+    requestAnimationFrame(tick);
+    if(!visible) return;
+
+    const dt = Math.min((ts - lastTime) / 16.67, 3);
+    lastTime = ts;
+    frameCount++;
+
+    // Shake detection
+    shakeEnergy *= 0.92;
+    if(shakeEnergy > 0.4 && ts - lastShakeTime > 300){
+      lastShakeTime = ts;
+      const cx = canvas.width*0.5 + (Math.random()-0.5)*canvas.width*0.4;
+      const cy = canvas.height*0.5 + (Math.random()-0.5)*canvas.height*0.4;
+      explode(cx, cy, 20);
+    }
+
+    updateAttractors(dt);
+
+    // Clear with dark fade for trails
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Gravity from accelerometer
+    const gx =  accelX * 0.25;
+    const gy = -accelY * 0.25;
+
+    const W = canvas.width, H = canvas.height;
+
+    // Trim excess particles
+    while(particles.length > 500) particles.shift();
+
+    for(let i = particles.length-1; i >= 0; i--){
+      const p = particles[i];
+
+      // Attractor force
+      const att = attractors[p.attractorIndex % attractors.length];
+      const dx = att.x - p.x;
+      const dy = att.y - p.y;
+      const dist = Math.sqrt(dx*dx+dy*dy)+0.001;
+      const stillness = Math.max(0, 1 - (Math.abs(accelX)+Math.abs(accelY))*0.05 - shakeEnergy);
+      const attForce = att.strength * stillness * 0.0004 / p.mass;
+      p.vx += (dx/dist) * attForce * dt;
+      p.vy += (dy/dist) * attForce * dt;
+
+      // Gravity
+      p.vx += gx * dt / p.mass;
+      p.vy += gy * dt / p.mass;
+
+      // Page offset drift
+      p.vx += (pageOffset - 0.5) * 0.02 * dt;
+
+      // Damping
+      const speed = Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+      const damp = speed > 8 ? 0.97 : (speed > 3 ? 0.985 : 0.992);
+      p.vx *= Math.pow(damp, dt);
+      p.vy *= Math.pow(damp, dt);
+
+      // Max speed
+      const maxSpeed = 18;
+      if(speed > maxSpeed){
+        p.vx = (p.vx/speed)*maxSpeed;
+        p.vy = (p.vy/speed)*maxSpeed;
+      }
+
+      // Update trail
+      p.trail.push({x:p.x, y:p.y});
+      if(p.trail.length > p.maxTrail) p.trail.shift();
+
+      // Move
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      // Bounce off edges
+      const margin = p.size;
+      if(p.x < margin){ p.x=margin; p.vx=Math.abs(p.vx)*0.75 + Math.random()*0.5; }
+      if(p.x > W-margin){ p.x=W-margin; p.vx=-Math.abs(p.vx)*0.75 - Math.random()*0.5; }
+      if(p.y < margin){ p.y=margin; p.vy=Math.abs(p.vy)*0.75 + Math.random()*0.5; }
+      if(p.y > H-margin){ p.y=H-margin; p.vy=-Math.abs(p.vy)*0.75 - Math.random()*0.5; }
+
+      // Draw trail
+      drawTrail(p);
+    }
+
+    // Draw glows on top of trails
+    for(let p of particles){
+      drawGlow(p);
+    }
+
+    // Pulse attractor halos (subtle, only when still)
+    const stillness2 = Math.max(0, 1 - (Math.abs(accelX)+Math.abs(accelY))*0.08 - shakeEnergy*2);
+    if(stillness2 > 0.05){
+      const t = ts * 0.001;
+      for(let a of attractors){
+        const pulse = 0.5 + 0.5*Math.sin(t*1.5 + a.phase);
+        const radius = 30 + pulse*20;
+        const alpha = 0.04 * stillness2 * pulse;
+        const col = COLORS[Math.floor(a.phase*3) % COLORS.length];
+        const gAtt = ctx.createRadialGradient(a.x,a.y,0,a.x,a.y,radius);
+        gAtt.addColorStop(0, `rgba(${col.r},${col.g},${col.b},${alpha*3})`);
+        gAtt.addColorStop(1, `rgba(${col.r},${col.g},${col.b},0)`);
+        ctx.beginPath();
+        ctx.arc(a.x,a.y,radius,0,Math.PI*2);
+        ctx.fillStyle = gAtt;
+        ctx.fill();
+      }
+    }
+
+    // Occasional random color shift per particle (slow)
+    if(frameCount % 180 === 0){
+      const p = particles[Math.floor(Math.random()*particles.length)];
+      if(p){
+        const nc = randColor();
+        p.r = nc.r; p.g = nc.g; p.b = nc.b;
+        p.attractorIndex = Math.floor(Math.random()*NUM_ATTRACTORS);
+      }
+    }
+  }
+
+  requestAnimationFrame(tick);
+})();
+</script>
+</body></html>

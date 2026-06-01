@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material lock-open-outline. Used in ManageWidgetsTab to label the
+     "Unlock" action when a widget is currently NOT locked (a hint that
+     tapping will lock it from AI changes). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:fillColor="@android:color/white"
+        android:pathData="M12,1C9.243,1 7,3.243 7,6H9C9,4.346 10.346,3 12,3C13.654,3 15,4.346 15,6V8H4V20C4,21.103 4.897,22 6,22H18C19.103,22 20,21.103 20,20V8H17V6C17,3.243 14.757,1 12,1ZM6,10H18V20H6V10ZM12,13C10.897,13 10,13.897 10,15C10,15.738 10.405,16.376 11,16.722V18H13V16.722C13.595,16.376 14,15.738 14,15C14,13.897 13.103,13 12,13Z"/>
+</vector>

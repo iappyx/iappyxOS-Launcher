@@ -1,0 +1,8 @@
+{
+  "slug": "greyscale",
+  "name": "Greyscale",
+  "subtitle": "Pure black-and-white. Minimalist, no tint.",
+  "bake": [
+    { "op": "set_saturation", "value": 0.0 }
+  ]
+}

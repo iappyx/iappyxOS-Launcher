@@ -1,0 +1,9 @@
+{
+  "slug": "rainbow_matrix",
+  "name": "Rainbow matrix",
+  "subtitle": "Greyscale, tinted by grid position — radial rainbow",
+  "bake": [
+    { "op": "set_saturation", "value": 0.0 }
+  ],
+  "tint": { "op": "position_hue", "saturation": 0.7, "value": 1.0 }
+}

@@ -1,0 +1,15 @@
+{
+  "page": {
+    "alpha": "clamp(1 - abs(p) * 1.4, 0, 1)",
+    "scaleX": "clamp(1 - abs(p) * 0.35, 0.01, 1)",
+    "scaleY": "clamp(1 - abs(p) * 0.35, 0.01, 1)"
+  },
+  "cell": {
+    "translationX": "p * (w * 0.5 - (cellCol - cols / 2 + 0.5) * (w / cols)) * clamp(abs(p) * 2, 0, 1)",
+    "translationY": "p * (h * 0.5 - (cellRow - rows / 2 + 0.5) * (h / rows)) * clamp(abs(p) * 2, 0, 1)",
+    "scaleX": "clamp(1 - abs(p) * 1.6, 0.01, 1)",
+    "scaleY": "clamp(1 - abs(p) * 1.6, 0.01, 1)",
+    "alpha": "clamp(1 - abs(p) * 2.2, 0, 1)",
+    "rotation": "p * 15 * (cellCol - cols / 2 + 0.5) * abs(p)"
+  }
+}

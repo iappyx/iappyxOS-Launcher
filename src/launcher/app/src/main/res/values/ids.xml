@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stores the theme "signature" last applied to a view tree by
+         Palette.applyThemeToTree, so the walk only runs when the theme (or the
+         tree) actually changed. -->
+    <item name="theme_sig_tag" type="id"/>
+</resources>

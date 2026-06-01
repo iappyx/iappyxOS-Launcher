@@ -1,0 +1,15 @@
+{
+  "slug": "sweetheart",
+  "name": "Sweetheart",
+  "subtitle": "Heart-shaped icons in soft pink duotone",
+  "shape": { "kind": "heart" },
+  "bake": [
+    { "op": "set_saturation", "value": 0.6 },
+    {
+      "op": "duotone",
+      "shadow_color": "#FF5C2A4A",
+      "highlight_color": "#FFFFD0E0",
+      "balance": 0.0
+    }
+  ]
+}

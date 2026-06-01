@@ -1,0 +1,9 @@
+{
+  "slug": "star",
+  "name": "Star",
+  "subtitle": "Five-pointed star silhouette via custom SVG path",
+  "shape": {
+    "kind": "custom",
+    "path": "M 50 3 L 61 38 L 98 38 L 68 60 L 79 95 L 50 73 L 21 95 L 32 60 L 2 38 L 39 38 Z"
+  }
+}

@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iappyxOS Launcher · Edit</title>
+<!-- Leaflet for the geofence map picker. Lazy-loaded on demand via
+     loadLeaflet() so a user who never opens the geofence trigger never
+     pays for the CDN round-trip. -->
+<style>
+  :root {
+    --bg: #0d0d12;
+    --panel: #17171f;
+    --line: #2a2a36;
+    --line-soft: #1f1f29;
+    --text: #ECECEC;
+    --hint: #8E8E97;
+    --accent: #4FC3F7;
+    --accent-soft: rgba(79,195,247,0.15);
+    --error: #FF5252;
+    --ok: #66BB6A;
+    --tool: #B39DDB;
+    --cell: 96px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; background:var(--bg); color:var(--text);
+    font: 14px/1.5 -apple-system, "SF Pro Text", Roboto, system-ui, sans-serif; overflow:hidden; }
+  #app { display:grid; grid-template-columns: 380px 1fr; grid-template-rows: 100vh;
+    height:100vh; transition: grid-template-columns 0.18s ease; }
+  #app.with-inspect { grid-template-columns: 380px 1fr 320px; }
+  /* Center column: section tabs across the top, then the active pane. */
+  #center { display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; }
+  #main-tabs { display:flex; gap:2px; padding:8px 12px 0;
+    background:var(--panel); border-bottom:1px solid var(--line); align-items:flex-end; }
+  #main-tabs button { background:transparent; color:var(--hint); border:0;
+    padding:8px 14px; border-radius:8px 8px 0 0; cursor:pointer; font-size:13px; font-weight:500;
+    border-bottom:2px solid transparent; }
+  #main-tabs button:hover { color:var(--text); background:rgba(255,255,255,.04); }
+  #main-tabs button.active { color:var(--text); background:var(--bg); border-bottom-color:var(--accent); }
+  .tab-pane { flex:1; min-height:0; overflow:auto; display:none; flex-direction:column; }
+  .tab-pane.active { display:flex; }
+  /* The Home tab pane needs to NOT scroll itself — its grid-wrap already
+     scrolls. Other panes (lists) want their own overflow. */
+  .tab-pane[data-tab="home"] { overflow:hidden; }
+  /* Generic two-up layout used by tabs that show a list + actions. */
+  .pane-section { padding:16px 20px; border-bottom:1px solid var(--line); }
+  .pane-section h2 { margin:0 0 12px; font-size:18px; font-weight:600; }
+  .pane-section p.sub { margin:-6px 0 12px; color:var(--hint); font-size:12px; }
+  .row-item { background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; margin-bottom:10px; display:flex;
+    align-items:center; gap:12px; }
+  .row-item .row-main { flex:1; min-width:0; }
+  .row-item .row-title { font-weight:500; font-size:14px; color:var(--text); }
+  .row-item .row-sub { font-size:12px; color:var(--hint); margin-top:2px; }
+  .row-item button { background:transparent; color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:6px 12px; cursor:pointer; font-size:12px; }
+  .row-item button.primary { border-color:var(--accent); color:var(--accent); }
+  .row-item button.danger { border-color:var(--error); color:var(--error); }
+  .row-item button:hover { background:rgba(255,255,255,.04); }
+  .row-item.active { border-color:var(--accent); }
+  .row-item.active .row-title::after { content:" • Active"; color:var(--accent); font-weight:400; }
+  /* Settings tab: form-style inputs */
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .field label { font-size:12px; color:var(--hint); }
+  .field input[type="text"], .field input[type="password"], .field input[type="number"], .field select {
+    background:#0a0a10; color:var(--text); border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; font-size:13px; max-width:340px; }
+  .field-row { display:flex; gap:14px; flex-wrap:wrap; }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between;
+    padding:10px 0; border-bottom:1px solid var(--line); }
+  .toggle-row:last-child { border-bottom:0; }
+  .toggle-row .label-stack .l { font-size:14px; color:var(--text); }
+  .toggle-row .label-stack .s { font-size:12px; color:var(--hint); margin-top:2px; }
+  /* Tiny iframe-thumb style for wallpapers grid */
+  .wp-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
+    gap:14px; padding:0; }
+  .wp-card { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; cursor:pointer; transition:border-color .1s; }
+  .wp-card:hover { border-color:var(--text); }
+  .wp-card.active { border-color:var(--accent); }
+  .wp-card .frame { aspect-ratio:9/16; background:#0a0a10; position:relative; pointer-events:none; }
+  .wp-card .frame iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .wp-card .meta { padding:8px 10px; }
+  .wp-card .meta .t { font-size:13px; color:var(--text); }
+  .wp-card .meta .s { font-size:11px; color:var(--hint); margin-top:2px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .wp-card .actions { display:flex; gap:6px; padding:6px 10px 10px; }
+  .wp-card .actions button { flex:1; background:transparent; color:var(--hint);
+    border:1px solid var(--line); border-radius:6px; padding:5px; font-size:11px; cursor:pointer; }
+  .wp-card .actions button:hover { color:var(--text); }
+  .wp-card .actions button.danger:hover { color:var(--error); border-color:var(--error); }
+  /* Tile picker (transitions / icon filters) — looks like a row but compact */
+  .tile-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:10px; }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:12px; cursor:pointer; }
+  .tile:hover { border-color:var(--text); }
+  .tile.active { border-color:var(--accent); background:var(--accent-soft); }
+  .tile .t { font-size:13px; color:var(--text); }
+  .tile .s { font-size:11px; color:var(--hint); margin-top:4px; }
+  /* Empty-state message */
+  .empty-state { padding:30px; text-align:center; color:var(--hint); font-size:13px; }
+  /* Widgets-tab filter chip row */
+  #widgets-filter button { background:transparent; border:1px solid var(--line); color:var(--hint);
+    border-radius:999px; padding:4px 12px; cursor:pointer; font-size:12px; }
+  #widgets-filter button:hover { color:var(--text); }
+  #widgets-filter button.primary { color:var(--accent); border-color:var(--accent); }
+  /* Showcase sub-tabs row */
+  #showcase-tabs button { background:transparent; border:1px solid var(--line); color:var(--hint);
+    border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px; }
+  #showcase-tabs button:hover { color:var(--text); }
+  #showcase-tabs button.active { color:var(--accent); border-color:var(--accent); }
+  /* Profiles save-current button (uses .primary class) */
+  .pane-section button.primary { background:transparent; border:1px solid var(--accent);
+    color:var(--accent); border-radius:8px; padding:6px 12px; cursor:pointer; font-size:13px; }
+  .pane-section button.primary:hover { background:var(--accent-soft); }
+  /* Neutral CTA — same shape as .primary, less prominent palette. Use
+     for secondary actions sitting next to a primary one (e.g. "New
+     blank profile" next to "Save current as profile"). Explicit class
+     so row-item buttons inside the same pane-section keep their own
+     compact styling. */
+  .pane-section button.secondary { background:transparent; border:1px solid var(--line);
+    color:var(--text); border-radius:8px; padding:6px 12px; cursor:pointer; font-size:13px; }
+  .pane-section button.secondary:hover { background:var(--line-soft); }
+
+  /* ── Chat pane ───────────────────────────────────────────── */
+  #chat { display:flex; flex-direction:column; min-height:0; min-width:0;
+    border-right:1px solid var(--line); background:var(--panel); }
+  #chat-header { padding:14px 18px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:10px; }
+  #chat-title { font-weight:600; font-size:15px; flex:1; }
+  #chat-clear { background:transparent; color:var(--hint); border:0; cursor:pointer; font-size:12px; padding:6px 10px; border-radius:6px; }
+  #chat-clear:hover { background:var(--line-soft); color:var(--text); }
+  #messages { flex:1; overflow:auto; padding:18px; }
+  .msg { margin-bottom:18px; }
+  .msg .role { font-size:11px; color:var(--hint); text-transform:uppercase; letter-spacing:.07em; margin-bottom:4px; }
+  .msg.user .text { background:var(--accent-soft); padding:10px 12px; border-radius:10px; white-space:pre-wrap; }
+  .msg.assistant .text { color:var(--text); white-space:pre-wrap; }
+  .msg.error .text { color:var(--error); white-space:pre-wrap; }
+  .toolchip { display:inline-flex; align-items:center; gap:8px;
+    background:rgba(179,157,219,0.10); color:var(--tool);
+    border:1px solid rgba(179,157,219,0.25);
+    padding:5px 10px; border-radius:999px;
+    font-size:12px; margin: 4px 6px 0 0; cursor:pointer;
+  }
+  .toolchip.fail { border-color:rgba(255,82,82,.4); color:var(--error); background: rgba(255,82,82,.07); }
+  .toolchip code { font-family: "SF Mono", Menlo, monospace; opacity:.8; }
+  #composer { border-top:1px solid var(--line); padding:14px; display:flex; flex-direction:column; gap:8px; }
+  #composer.dragover { background:rgba(40,200,164,.06); outline:2px dashed var(--accent); outline-offset:-6px; }
+  #composer-row { display:flex; gap:10px; align-items:flex-end; }
+  #attach { background:transparent; color:var(--hint); border:1px solid var(--line); border-radius:10px;
+    width:42px; height:42px; cursor:pointer; font-size:18px; padding:0; flex:0 0 42px; }
+  #attach:hover { color:var(--text); border-color:var(--text); }
+  #attach.has-image { color:var(--accent); border-color:var(--accent); }
+  #attach-preview { display:flex; align-items:center; gap:8px; padding:6px 10px;
+    background:#0a0a10; border:1px solid var(--line); border-radius:8px; font-size:12px; color:var(--hint); }
+  #attach-preview img { width:32px; height:32px; object-fit:cover; border-radius:4px; }
+  #attach-preview .name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  #attach-preview button { background:transparent; color:var(--hint); border:0; cursor:pointer; font-size:14px; }
+  #attach-preview button:hover { color:var(--error); }
+  .dots { display:inline-flex; gap:3px; align-items:center; }
+  .dots span { width:6px; height:6px; border-radius:50%; background:var(--accent);
+    animation: pulse 1.2s infinite ease-in-out; }
+  .dots span:nth-child(2) { animation-delay: 0.15s; }
+  .dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes pulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+  #prompt { flex:1; background:#0a0a10; color:var(--text); border:1px solid var(--line);
+    border-radius:10px; padding:12px; font: 14px/1.4 inherit; resize:none; min-height:54px; max-height:160px; }
+  #prompt:focus { outline:2px solid var(--accent); border-color:transparent; }
+  #send { background:var(--accent); color:#001220; border:0; border-radius:10px;
+    padding:0 18px; font-weight:600; cursor:pointer; }
+  #send:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* ── Board pane ──────────────────────────────────────────── */
+  #board { display:flex; flex-direction:column; }
+  #pages { display:flex; align-items:center; gap:8px; padding:14px 20px;
+    border-bottom:1px solid var(--line); background:var(--panel); }
+  #mode-toggle { display:inline-flex; background:var(--line-soft); border-radius:7px; overflow:hidden; margin-left:auto; }
+  #mode-toggle button { background:transparent; color:var(--hint); border:0; padding:6px 14px; font:inherit;
+    font-size:12px; cursor:pointer; }
+  #mode-toggle button.active { background:var(--accent); color:#001220; font-weight:600; }
+  /* Run mode used to paint the grid background with a dark gradient
+     to "feel like a phone". Now that we have an actual wallpaper
+     iframe in the phone-frame, that gradient hides it — drop it. */
+  #board.run-mode .cell { cursor:default; }
+  #board.run-mode .cell.empty { display:none; }
+  #board.run-mode .cell .delete-btn,
+  #board.run-mode .cell .resize-handle { display:none !important; }
+  #board.run-mode .cell.widget iframe,
+  #board.run-mode .cell.folder iframe { pointer-events:auto !important; }
+  /* In Run mode the widget renders its own UI — hide the editor's title
+     chip so we get an authentic phone-side preview without overlap. */
+  #board.run-mode .cell.widget .label { display:none; }
+  .page-tab { padding:6px 12px; border-radius:7px; cursor:pointer; font-size:13px;
+    color:var(--hint); border:1px solid transparent; }
+  .page-tab.active { background:var(--accent-soft); color:var(--text); border-color:var(--accent); }
+  .page-tab:hover { background:var(--line-soft); color:var(--text); }
+  .page-tab .ren { display:inline-block; margin-left:6px; opacity:.4; font-size:11px; cursor:pointer; }
+  .page-tab .ren:hover { opacity:1; color:var(--accent); }
+  .page-tab .del { display:inline-block; margin-left:6px; opacity:.4; }
+  .page-tab .del:hover { opacity:1; color:var(--error); }
+  .page-tab.dragging { opacity:.4; }
+  .page-tab.drop-target { border-color:var(--accent); background:var(--accent-soft); }
+  #add-page { color:var(--hint); cursor:pointer; padding:6px 12px; border:1px dashed var(--line); border-radius:7px; font-size:12px; }
+  #add-page:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* ── Phone frame ──────────────────────────────────────────
+     The center of the Home tab. A rounded, aspect-ratio'd
+     container that hosts the live wallpaper iframe behind the
+     grid + page dots + dock, so the editor reads as an actual
+     phone screen rather than a flat icon list.
+     - aspect-ratio honours the launcher's portrait orientation
+       (most users); landscape mode would want a different ratio
+       but we don't track per-user orientation yet.
+     - max-width keeps the frame from getting cartoonishly wide
+       on a big monitor.
+     - overflow:hidden clips the wallpaper iframe to the rounded
+       edges; without it, square corners poke past the radius. */
+  #phone-stage { flex:1; min-height:0; display:flex; align-items:center;
+    justify-content:center; padding:18px; overflow:hidden; }
+  #phone-frame { position:relative; width:100%; max-width:420px;
+    aspect-ratio: 9 / 19.5; height:auto; max-height:100%;
+    background:#000; border-radius:38px; overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow: 0 10px 40px rgba(0,0,0,.55), inset 0 0 0 4px rgba(255,255,255,.04); }
+  #phone-wallpaper { position:absolute; inset:0; width:100%; height:100%;
+    border:0; pointer-events:none; z-index:0; }
+  #phone-screen { position:absolute; inset:0; display:flex; flex-direction:column;
+    z-index:1; padding:18px 12px 12px; }
+  #phone-dots { display:flex; justify-content:center; gap:6px; padding:6px 0; }
+  #phone-dots .dot { width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,.35); transition:background .12s, transform .12s; }
+  #phone-dots .dot.active { background:#fff; transform:scale(1.2); }
+  /* Now that grid + dock sit on top of the wallpaper, drop the
+     opaque panel chrome. Cells keep their own backgrounds so
+     they stay readable. */
+  /* Grid fills the wrapper's full height so cells become tall
+     rectangles (matching the phone's `cellHeight = (H - gaps)/rows`
+     formula), instead of squares that leave dead space above the
+     dock. align-items:stretch stretches the grid cross-axis (= the
+     vertical direction here, because grid-wrap is flex-row).
+     overflow:hidden mirrors the phone's home pager: the grid is
+     fit-or-clip, never scrollable. With this, transient sub-pixel
+     measurement skew between sizing passes can't produce a
+     scrollbar — at worst we briefly clip a pixel-row, which
+     resolves itself on the next ResizeObserver tick. */
+  #grid-wrap { flex:1; min-height:0; overflow:hidden; padding:0;
+    display:flex; align-items:stretch; justify-content:center; }
+  /* padding:0 here so JS can measure clientWidth and compute cell
+     size cleanly without subtracting padding. Visual breathing room
+     comes from #phone-screen's padding above. */
+  #grid { display:grid; gap:8px; padding:0; background:transparent;
+    border:0; border-radius:0; width:100%; }
+  /* Cell box. padding (--cell-pad) and label height (--label-h) are
+     set in JS from the on-device IconCell.padPx = 6dp and labelH =
+     16dp constants, scaled to editor CSS pixels via
+     dpInEditorCssPx(). flex column + justify-content:center matches
+     the on-device onLayout vertical-center of the (icon + labelTopPad
+     + label) stack. */
+  .cell { background:transparent; border-radius:14px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:var(--cell-pad, 6px); cursor:grab; user-select:none;
+    border:1px solid transparent; position:relative; min-width:0; min-height:0; }
+  .cell.icon:hover { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.04); }
+  .cell.folder:hover, .cell.widget:hover { border-color:rgba(255,255,255,.15); }
+  .cell.dragging { opacity:.4; }
+  /* Multi-select outline. Outline (not border) so it doesn't shift the
+     cell layout; doubled with box-shadow for crispness on dark bg. */
+  .cell.selected { outline:2px solid var(--accent); outline-offset:1px;
+    box-shadow:0 0 0 2px rgba(99,102,241,.25); }
+  .cell.empty { background:transparent; border:1px dashed rgba(255,255,255,.08); cursor:pointer; }
+  .cell.empty:hover { border-color:var(--accent); background:var(--accent-soft); }
+  /* Icon/folder visual block — EXACT mirror of the on-device
+     IconCell/FolderCell formula. JS (sizeGridSquareCells) computes
+     iconSize per surface (grid, dock) using the same math the phone
+     does in onMeasure:
+       iconSize = clamp(min(innerW, innerH - labelArea) * 0.82,
+                        28dp, 72dp)
+     scaled by `editorPhoneFrameWidth / phoneScreenWidthPx × density`
+     so the editor's phone-frame renders icons at the same visual
+     proportion the real phone draws. Variable is set on the grid /
+     dock elements; each .icon inside inherits it.
+     position:relative so the notification-badge pill can be
+     absolute-positioned at the icon's top-right corner. */
+  .cell .icon { width:var(--icon-size, 48px); height:var(--icon-size, 48px);
+    flex:0 0 auto; align-self:center; border-radius:16px;
+    background-size:contain; background-position:center; background-repeat:no-repeat;
+    pointer-events:none; position:relative; }
+  /* Notification badge pill — mirrors IconCell.dispatchDraw on the
+     phone (red fill, white stroke + text, top-right corner of the
+     icon overlapping ~35% out of the icon edge). 99+ renders as a
+     wider pill. */
+  .cell .badge { position:absolute; top:-6px; right:-8px;
+    min-width:16px; height:18px; padding:0 5px;
+    background:#E53935; color:#fff;
+    border:1.5px solid rgba(10,10,16,.9); border-radius:999px;
+    font-size:10px; font-weight:700; line-height:14px;
+    text-align:center; box-sizing:border-box;
+    pointer-events:none;
+    box-shadow:0 1px 2px rgba(0,0,0,.4); }
+  /* Folder-cell variant: same square block, but painted as a dark
+     translucent panel with a 2×2 grid of member-app icons inside.
+     The 2×2 children are set up by fillCell(); CSS just defines the
+     panel chrome so it stays in sync if cell size changes. */
+  .cell.folder .icon {
+    background:rgba(0,0,0,.27);
+    border:1px solid rgba(255,255,255,.2);
+    padding:8px; box-sizing:border-box;
+    display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
+    gap:4px; }
+  /* Label — matches the on-device labelView in IconCell/FolderCell:
+       textSize     = 11sp (→ --label-font-size, 11dp scaled)
+       labelH       = 16dp (→ --label-h, fixed height)
+       labelTopPad  =  2dp (→ --label-top-pad, gap above label)
+     The scaled values come from JS so the editor's smaller phone-
+     frame still renders text at proportionally the same size. */
+  .cell .label { font-size:var(--label-font-size, 11px);
+    height:var(--label-h, 16px);
+    line-height:var(--label-h, 16px);
+    margin-top:var(--label-top-pad, 2px);
+    color:rgba(255,255,255,.92);
+    text-shadow:0 1px 2px rgba(0,0,0,.6);
+    text-align:center;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; pointer-events:none; }
+  /* No background tint on widget/folder cells — on the phone, widget
+     iframes render their own content over the wallpaper, and folder
+     cells show as plain icons. The editor used to paint a dark
+     gradient here as a "this is a widget" cue, but it broke the
+     phone-fidelity look on the home tab. */
+  .cell.widget { background:transparent; }
+  .cell.widget .label { color:rgba(255,255,255,.92); font-weight:500; font-size:12px;
+    text-shadow:0 1px 2px rgba(0,0,0,.6); }
+  .cell.folder { background:transparent; }
+  .cell .delete-btn { position:absolute; top:4px; right:4px; width:22px; height:22px;
+    background:rgba(0,0,0,.6); color:#fff; border-radius:50%; font-size:14px; line-height:22px;
+    text-align:center; cursor:pointer; opacity:0; transition:opacity .1s; }
+  .cell:hover .delete-btn { opacity:.9; }
+  .cell .delete-btn:hover { background:var(--error); }
+
+  #dock-wrap { padding:8px 4px 4px; display:flex; justify-content:center; }
+  #dock-dots { display:flex; justify-content:center; gap:6px; padding:4px 0 8px;
+    align-items:center; }
+  #dock-dots .dot { width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,.25); cursor:pointer; transition:all 160ms; }
+  #dock-dots .dot:hover { background:rgba(255,255,255,.45); }
+  #dock-dots .dot.active { background:var(--accent); width:14px; border-radius:3px; }
+  #dock-dots .add { color:var(--hint); cursor:pointer; font-size:11px; padding:0 4px;
+    border:1px dashed var(--line); border-radius:6px; line-height:14px; }
+  #dock-dots .add:hover { color:var(--accent); border-color:var(--accent); }
+  #dock-dots .del { color:var(--error); opacity:.5; cursor:pointer; font-size:10px;
+    margin-left:2px; }
+  #dock-dots .del:hover { opacity:1; }
+  #dock { display:grid; gap:8px; padding:8px;
+    background:rgba(10, 12, 20, .55); backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border:1px solid rgba(255,255,255,.06); border-radius:22px; }
+  /* Dock labels follow the launcher's showDockLabels pref. Default
+     state (body has no `show-dock-labels` class) = hidden, matching
+     the on-device default. When the user flips Settings →
+     Behaviour → Show dock labels, applyViewPrefs() adds the class
+     and labels reappear. Without this rule the dock cells stayed
+     visually taller than wide because icon + label total height
+     exceeded the square track size. */
+  #dock .cell .label { display: none; }
+  body.show-dock-labels #dock .cell .label { display: block; }
+
+  #status-bar { padding:8px 20px; display:flex; align-items:center; gap:14px; font-size:12px;
+    color:var(--hint); border-top:1px solid var(--line); background:var(--panel); }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--ok); display:inline-block; }
+  .dot.bad { background:var(--error); }
+
+  /* ── Add popover ─────────────────────────────────────────── */
+  #popover-bg { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:100; }
+  #popover-bg.open { display:flex; }
+  #popover { background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:0; max-width:520px; width:90%; max-height:80vh; overflow:hidden; display:flex; flex-direction:column; }
+  #popover-tabs { display:flex; border-bottom:1px solid var(--line); }
+  #popover-tabs button { flex:1; background:transparent; color:var(--hint); border:0;
+    padding:14px; cursor:pointer; font-size:13px; border-bottom:2px solid transparent; }
+  #popover-tabs button.active { color:var(--text); border-color:var(--accent); }
+  #popover-search { padding:12px 16px; border-bottom:1px solid var(--line); }
+  #popover-search input { width:100%; background:#0a0a10; border:1px solid var(--line);
+    color:var(--text); border-radius:8px; padding:10px; font-size:14px; }
+  .list-search { display:block; width:100%; background:#0a0a10; border:1px solid var(--line);
+    color:var(--text); border-radius:8px; padding:8px 12px; font-size:13px;
+    margin-bottom:10px; box-sizing:border-box; }
+  .list-search:focus { outline:none; border-color:var(--accent); }
+  #popover-list { flex:1; overflow:auto; padding:8px; }
+  .pickitem { display:flex; align-items:center; gap:12px; padding:10px 12px;
+    border-radius:8px; cursor:pointer; }
+  .pickitem:hover { background:var(--line-soft); }
+  .pickitem * { pointer-events:none; }
+  .pickitem .icon { width:36px; height:36px; border-radius:8px;
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    background-color:var(--line-soft); flex-shrink:0; }
+  .pickitem .label { flex:1; }
+  .pickitem .pkg { font-size:11px; color:var(--hint); }
+  #popover-foot { padding:14px 16px; border-top:1px solid var(--line); }
+  #popover-gen-input { width:100%; background:#0a0a10; border:1px solid var(--line);
+    color:var(--text); border-radius:8px; padding:10px; font-size:14px; }
+  #popover-close { position:absolute; top:8px; right:12px; background:transparent; border:0;
+    color:var(--hint); font-size:22px; cursor:pointer; }
+
+  /* ── Confirm dialog ─────────────────────────────────────── */
+  #confirm-bg { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none;
+    align-items:center; justify-content:center; z-index:200; }
+  #confirm-bg.open { display:flex; }
+  #confirm-card { background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:24px; max-width:380px; width:90%; box-shadow:0 24px 48px rgba(0,0,0,.45);
+    /* position:relative + overflow:hidden are critical for the slide-in
+       sub-sheets used by the profile editor (Pick app / Custom intent
+       action). Without position:relative, an inset:0 absolute child falls
+       through to #confirm-bg and covers the whole viewport (the original
+       "goes fullscreen" symptom). overflow:hidden then clips the slide-in
+       animation when the sheet starts at translateX(100%) just off the
+       card's right edge. */
+    position:relative; overflow:hidden; }
+  #confirm-title { font-size:16px; font-weight:600; margin-bottom:8px; }
+  #confirm-message { color:var(--hint); font-size:14px; line-height:1.5; margin-bottom:20px; }
+  #confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
+  #confirm-actions button { padding:10px 18px; border:0; border-radius:8px; cursor:pointer;
+    font-size:14px; font-weight:500; }
+  #confirm-cancel { background:transparent; color:var(--text); border:1px solid var(--line) !important; }
+  #confirm-cancel:hover { background:var(--line-soft); }
+  #confirm-confirm { background:var(--error); color:#fff; }
+  #confirm-confirm:hover { filter:brightness(1.1); }
+
+  /* ── Inspect panel ───────────────────────────────────────── */
+  #inspect { display:none; flex-direction:column; min-height:0; min-width:0;
+    background:var(--panel); border-left:1px solid var(--line); overflow:auto; }
+  #app.with-inspect #inspect { display:flex; }
+  #inspect-header { padding:14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; }
+  #inspect-header .title { flex:1; font-weight:600; }
+  #inspect-header .close { background:transparent; border:0; color:var(--hint); cursor:pointer; font-size:20px; }
+  #inspect-body { flex:1; padding:18px; overflow:auto; }
+  .insp-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line-soft); font-size:13px; }
+  .insp-row .k { color:var(--hint); }
+  .insp-row .v { font-family:"SF Mono", Menlo, monospace; font-size:12px; color:var(--text); text-align:right; word-break:break-all; }
+  .insp-section { margin-top:18px; }
+  .insp-section h3 { font-size:12px; text-transform:uppercase; color:var(--hint); letter-spacing:.07em; margin:0 0 10px; }
+  .insp-section button { background:var(--accent); color:#001220; border:0; padding:10px 14px; border-radius:8px;
+    font-weight:600; cursor:pointer; font-size:13px; margin-right:8px; }
+  .insp-section button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); }
+  .insp-section button.danger { background:transparent; color:var(--error); border:1px solid var(--error); }
+  .insp-resize { display:flex; gap:8px; align-items:center; }
+  .insp-resize input { width:50px; background:#0a0a10; border:1px solid var(--line); color:var(--text);
+    border-radius:6px; padding:6px 8px; text-align:center; font:13px monospace; }
+  .insp-folder-list { margin-top:10px; }
+  .insp-folder-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-soft); }
+  .insp-folder-item .icon { width:28px; height:28px; border-radius:6px;
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    background-color:var(--line-soft); flex-shrink:0; }
+  .insp-folder-item .label { flex:1; font-size:13px; }
+  .insp-folder-item button { background:transparent; color:var(--hint); border:0; cursor:pointer; }
+  .insp-folder-item button:hover { color:var(--error); }
+
+  /* ── Resize handle ───────────────────────────────────────── */
+  .resize-handle { position:absolute; bottom:2px; right:2px; width:18px; height:18px; cursor:nwse-resize;
+    background:linear-gradient(135deg, transparent 50%, var(--accent) 50%);
+    border-bottom-right-radius:14px; opacity:0; transition:opacity .1s; z-index:3; }
+  .cell.widget:hover .resize-handle, .cell.folder:hover .resize-handle { opacity:.7; }
+  .cell .resize-handle:hover { opacity:1; }
+  .resize-ghost { border:2px dashed var(--accent); border-radius:14px;
+    background:rgba(79,195,247,0.08); pointer-events:none; z-index:5;
+    box-shadow:0 0 0 9999px rgba(0,0,0,0.0); transition:none; }
+  .resize-ghost-label { position:absolute; top:6px; left:8px; font-size:12px;
+    font-family:"SF Mono", Menlo, monospace; color:var(--accent); font-weight:600;
+    background:rgba(0,0,0,0.65); padding:2px 8px; border-radius:6px; }
+  /* Drop ghost: same visual treatment as the resize ghost. Shows
+     where a dragged cell will land — sized to the source's w×h so
+     widgets render their footprint properly, not just a single
+     cell border.
+     Lives in <body> as `position:fixed` (NOT inside #grid) so it
+     can never intercept drag events on the cells underneath. The
+     earlier in-grid version had pointer-events:none, but some
+     browsers route HTML drop events to the topmost element
+     regardless — pulling the ghost out of the drop-target tree
+     sidesteps that quirk entirely. */
+  .drop-ghost { position:fixed; pointer-events:none; z-index:9999;
+    border:2px dashed var(--accent); border-radius:14px;
+    background:rgba(79,195,247,0.10); }
+  /* `.invalid` is added by the JS when the prospective drop would
+     overlap an existing cell or fall off the grid. The drop is
+     still ATTEMPTED (server is authoritative) but the user gets
+     a visual hint that they're aiming at a bad slot. */
+  .drop-ghost.invalid { border-color:var(--error);
+    background:rgba(255,82,82,0.10); }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ── Chat pane ── -->
+  <div id="chat">
+    <div id="chat-header">
+      <span id="chat-title">AI editor</span>
+      <button id="chat-clear" title="Clear conversation">Clear</button>
+    </div>
+    <div id="messages"></div>
+    <div id="thinking" style="display:none; padding:10px 18px; color:var(--hint); font-size:13px;">
+      <span class="dots"><span></span><span></span><span></span></span> thinking…
+    </div>
+    <div id="composer">
+      <div id="attach-preview" style="display:none;">
+        <img id="attach-thumb" alt="" />
+        <span class="name" id="attach-name">image</span>
+        <button id="attach-clear" title="Remove image">✕</button>
+      </div>
+      <div id="composer-row">
+        <button id="attach" title="Attach image (drop or paste an image too)">📎</button>
+        <input id="attach-file" type="file" accept="image/*" style="display:none;" />
+        <textarea id="prompt" placeholder='Try: "add a weather widget to page 1" — or attach an image' rows="2"></textarea>
+        <button id="send">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Center column: section tabs + each tab's content pane ── -->
+  <div id="center">
+    <div id="main-tabs">
+      <button data-section="home" class="active">Home</button>
+      <button data-section="profiles">Profiles</button>
+      <button data-section="widgets">Widgets</button>
+      <button data-section="wallpapers">Wallpapers</button>
+      <button data-section="transitions">Transitions</button>
+      <button data-section="icons">Icons</button>
+      <button data-section="clippings">Clippings</button>
+      <button data-section="settings">Settings</button>
+      <button data-section="theme">Theme</button>
+      <!-- PLUGINS: BEGIN -->
+      <button data-section="plugins">Plugins</button>
+      <!-- PLUGINS: END -->
+      <button data-section="showcase">Showcase</button>
+    </div>
+
+    <!-- Home (the existing board) -->
+    <div class="tab-pane active" data-tab="home">
+      <div id="board">
+        <div id="pages">
+          <div id="pages-tabs" style="display:flex; gap:8px; align-items:center; flex:1;"></div>
+          <div id="mode-toggle">
+            <button data-mode="edit" class="active">✎ Edit</button>
+            <button data-mode="run">▶ Run</button>
+          </div>
+        </div>
+        <!-- Phone-frame: aspect-ratio'd container with the active live
+             wallpaper layered behind grid+dots+dock. Makes the editor
+             actually look like a phone home screen rather than a list
+             of icons on a flat panel. -->
+        <div id="phone-stage">
+          <div id="phone-frame">
+            <iframe id="phone-wallpaper"
+              sandbox="allow-scripts allow-same-origin"
+              loading="lazy"></iframe>
+            <div id="phone-screen">
+              <div id="grid-wrap"><div id="grid"></div></div>
+              <div id="phone-dots"></div>
+              <div id="dock-wrap"><div id="dock"></div></div>
+              <div id="dock-dots"></div>
+            </div>
+          </div>
+        </div>
+        <div id="status-bar">
+          <span class="dot" id="status-dot"></span>
+          <span id="status-text">connecting…</span>
+          <span style="flex:1"></span>
+          <a href="#" id="disconnect" style="color:var(--hint)">Disconnect</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-tab="profiles">
+      <div class="pane-section">
+        <h2>Profiles</h2>
+        <p class="sub">Atomic snapshots of layout + wallpaper + icon filter + transition. Switch by hand or set up triggers (WiFi, charger) and let the launcher swap automatically.</p>
+        <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+          <button id="profiles-save-current" class="primary">Save current as profile…</button>
+          <button id="profiles-new-blank" class="secondary">New blank profile…</button>
+          <label class="toggle-row" style="border:0; padding:6px 0; gap:8px;">
+            <input type="checkbox" id="profiles-pause-autoswitch" />
+            <span class="label-stack"><span class="l">Pause auto-switching</span></span>
+          </label>
+        </div>
+        <div id="profiles-list"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-tab="widgets">
+      <div class="pane-section">
+        <h2>Widgets</h2>
+        <p class="sub">Bundled and AI-generated widgets. Rename or edit the description of user-generated ones; delete any that aren't in use.</p>
+        <div id="widgets-filter" style="display:flex; gap:6px; margin-bottom:14px;">
+          <button data-filter="all" class="primary">All</button>
+          <button data-filter="user">Mine</button>
+          <button data-filter="bundled">Bundled</button>
+          <button data-filter="in-use">In use</button>
+        </div>
+        <input id="widgets-q" class="list-search" placeholder="Search widgets…" />
+        <div id="widgets-list"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-tab="wallpapers">
+      <div class="pane-section">
+        <h2>Wallpapers</h2>
+        <p class="sub">Live previews of the bundled and AI-generated wallpapers. Click a card to switch.</p>
+        <input id="wallpapers-q" class="list-search" placeholder="Search wallpapers…" />
+        <div id="wallpapers-grid" class="wp-grid"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-tab="transitions">
+      <div class="pane-section">
+        <h2>Page transitions</h2>
+        <p class="sub">Tap a tile to set it as the active page transition. User-generated transitions can be renamed, edited, or deleted.</p>
+        <input id="transitions-q" class="list-search" placeholder="Search transitions…" />
+        <div id="transitions-list"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-tab="icons">
+      <div class="pane-section">
+        <h2>Icon filters</h2>
+        <p class="sub">A global visual treatment applied to every app icon. Tap to apply. User-generated filters can be renamed, edited, or deleted.</p>
+        <input id="icons-q" class="list-search" placeholder="Search icon filters…" />
+        <div id="icons-list"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-tab="clippings">
+      <div class="pane-section">
+        <h2>Clippings</h2>
+        <p class="sub">Share-to-launcher captures pinned on the rightmost page.</p>
+        <div id="clippings-filter" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;"></div>
+        <input id="clippings-q" class="list-search" placeholder="Search clippings…" />
+        <div id="clippings-list"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" data-tab="settings">
+      <div id="settings-body"></div>
+    </div>
+
+    <div class="tab-pane" data-tab="theme">
+      <div id="theme-body"></div>
+    </div>
+
+    <!-- PLUGINS: BEGIN — installed-plugin manager + showcase install bridge -->
+    <div class="tab-pane" data-tab="plugins">
+      <div class="pane-section">
+        <h2>Plugins</h2>
+        <p class="sub">Installed plugins extend widgets and wallpapers via capability-gated bridges. Browse the showcase to install more.</p>
+        <div id="plugins-list"></div>
+        <div style="margin-top:14px;">
+          <button id="plugins-browse-btn" class="primary"
+                  style="background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;">
+            Browse showcase
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- PLUGINS: END -->
+
+    <div class="tab-pane" data-tab="showcase">
+      <div class="pane-section">
+        <h2>Showcase</h2>
+        <p class="sub">Browse community widgets, wallpapers, transitions, and icon filters from the public showcase.</p>
+        <div id="showcase-tabs" style="display:flex; gap:6px; margin-bottom:14px;">
+          <button data-kind="widgets" class="active">Widgets</button>
+          <button data-kind="wallpapers">Wallpapers</button>
+          <button data-kind="transitions">Transitions</button>
+          <button data-kind="iconFilters">Icon filters</button>
+          <button data-kind="plugins">Plugins</button>
+          <span style="flex:1"></span>
+          <button id="showcase-reload">↻</button>
+        </div>
+        <input id="showcase-q" class="list-search" placeholder="Search showcase…" />
+        <div id="showcase-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /#center -->
+
+  <!-- ── Inspect pane ── (must live inside #app for the grid column) -->
+  <div id="inspect">
+    <div id="inspect-header">
+      <span class="title" id="inspect-title">Cell</span>
+      <button class="close" id="inspect-close">✕</button>
+    </div>
+    <div id="inspect-body"></div>
+  </div>
+</div>
+
+<!-- ── Add popover ── -->
+<div id="popover-bg">
+  <div id="popover">
+    <button id="popover-close">✕</button>
+    <div id="popover-tabs">
+      <button data-tab="apps" class="active">Apps</button>
+      <button data-tab="widgets">Widgets</button>
+      <button data-tab="folder">Folder</button>
+      <button data-tab="generate">Generate</button>
+    </div>
+    <div id="popover-search">
+      <input id="popover-q" placeholder="Search…" />
+    </div>
+    <div id="popover-list"></div>
+    <div id="popover-foot" style="display:none">
+      <textarea id="popover-gen-input" rows="3" placeholder="Describe a widget — e.g., a clock with the date underneath"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirm dialog ── -->
+<div id="confirm-bg">
+  <div id="confirm-card">
+    <div id="confirm-title">Delete?</div>
+    <div id="confirm-message"></div>
+    <div id="confirm-actions">
+      <button id="confirm-cancel">Cancel</button>
+      <button id="confirm-confirm">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

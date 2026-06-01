@@ -1,0 +1,9 @@
+{
+  "slug": "wallpaper_themed",
+  "name": "Wallpaper themed",
+  "subtitle": "Tints sampled from your wallpaper, distributed across the grid",
+  "bake": [
+    { "op": "set_saturation", "value": 0.0 }
+  ],
+  "tint": { "op": "wallpaper_color" }
+}

@@ -1,0 +1,8 @@
+{
+  "slug": "pixelate",
+  "name": "Pixelate",
+  "subtitle": "8-bit retro: icons downsampled to chunky pixels",
+  "bake": [
+    { "op": "pixelate", "grid": 14 }
+  ]
+}

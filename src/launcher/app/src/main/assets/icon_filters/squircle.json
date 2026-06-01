@@ -1,0 +1,6 @@
+{
+  "slug": "squircle",
+  "name": "Squircle",
+  "subtitle": "iOS-style squircle silhouette — softer than a rounded square, flatter than a circle",
+  "shape": { "kind": "squircle", "n": 4.0 }
+}

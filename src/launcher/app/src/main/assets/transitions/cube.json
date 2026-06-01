@@ -1,0 +1,10 @@
+{
+  "page": {
+    "translationX":   "0",
+    "alpha":          "1",
+    "cameraDistance": "12000 * density",
+    "rotationY":      "-p * 90",
+    "pivotX":         "w * (1 - max(sign(p), 0))",
+    "pivotY":         "h / 2"
+  }
+}

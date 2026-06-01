@@ -1,0 +1,276 @@
+<!-- Built with iappyxOS Launcher -->
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="iappyx-widget" content="pause">
+<title>Compass</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:var(--iappyx-surface,#1a1a2e);color:var(--iappyx-on-surface,#fff);
+  font-family:-apple-system,Roboto,system-ui,sans-serif;overflow:hidden}
+
+#root{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;gap:clamp(4px,2vmin,12px);
+}
+
+/* ── compass wrap ── */
+#compass-wrap{
+  position:relative;
+  width:clamp(80px,70vmin,260px);
+  height:clamp(80px,70vmin,260px);
+  flex-shrink:0;
+}
+
+/* outer ring */
+#ring{
+  position:absolute;inset:0;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.15);
+  background:radial-gradient(circle at 30% 30%,
+    rgba(255,255,255,.07) 0%,
+    rgba(255,255,255,.02) 50%,
+    transparent 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.06),
+             inset 0 0 20px rgba(0,0,0,.4);
+}
+
+/* tick marks container – rotates with the rose */
+#rose{
+  position:absolute;inset:0;
+  border-radius:50%;
+  transition:transform .25s cubic-bezier(.25,.46,.45,.94);
+}
+
+canvas#ticks{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+}
+
+/* north indicator — fixed at top of widget, does NOT rotate */
+#north-pip{
+  position:absolute;
+  top:4%;left:50%;
+  transform:translateX(-50%);
+  width:0;height:0;
+  border-left:clamp(4px,1.2vmin,8px) solid transparent;
+  border-right:clamp(4px,1.2vmin,8px) solid transparent;
+  border-bottom:clamp(8px,2.5vmin,16px) solid var(--iappyx-tertiary,#e84560);
+  filter:drop-shadow(0 0 4px rgba(232,69,96,.6));
+  z-index:10;
+}
+
+/* center dot */
+#center{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:clamp(6px,2vmin,12px);
+  height:clamp(6px,2vmin,12px);
+  border-radius:50%;
+  background:var(--iappyx-primary,#7b8fff);
+  box-shadow:0 0 6px var(--iappyx-primary,#7b8fff);
+  z-index:11;
+}
+
+/* ── heading display ── */
+#heading-box{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+#heading-deg{
+  font-size:clamp(18px,7vmin,48px);
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.5px;
+  color:var(--iappyx-on-surface,#fff);
+  line-height:1;
+}
+#heading-dir{
+  font-size:clamp(11px,3.5vmin,22px);
+  font-weight:600;
+  color:var(--iappyx-primary,#7b8fff);
+  letter-spacing:1px;
+}
+
+/* status */
+#status{
+  font-size:clamp(9px,2.5vmin,13px);
+  color:rgba(255,255,255,.4);
+  letter-spacing:.4px;
+}
+</style>
+</head><body>
+
+<div id="root">
+  <div id="compass-wrap">
+    <div id="ring"></div>
+    <div id="rose">
+      <canvas id="ticks"></canvas>
+    </div>
+    <div id="north-pip"></div>
+    <div id="center"></div>
+  </div>
+  <div id="heading-box">
+    <div id="heading-deg">---°</div>
+    <div id="heading-dir">--</div>
+  </div>
+  <div id="status">Initialising…</div>
+</div>
+
+<script>
+/* ── bridge init ── */
+function _initBridge(){if(typeof iappyx==='undefined'){setTimeout(_initBridge,50);return;}onReady();}
+window.addEventListener('load',function(){setTimeout(_initBridge,200);});
+
+/* ── state ── */
+var currentHeading = 0;
+var targetHeading  = 0;
+var displayHeading = 0;
+var rafId = null;
+var ready = false;
+
+/* ── canvas drawing ── */
+function drawRose(canvas){
+  var size = canvas.parentElement.offsetWidth;
+  canvas.width  = size;
+  canvas.height = size;
+  var ctx = canvas.getContext('2d');
+  var cx = size/2, cy = size/2, r = size/2;
+
+  ctx.clearRect(0,0,size,size);
+
+  /* tick marks + labels */
+  var cardinals = ['N','NE','E','SE','S','SW','W','NW'];
+  for(var i=0;i<360;i+=5){
+    var rad = (i-90)*Math.PI/180;
+    var isMajor  = (i%90===0);
+    var isMinor  = (i%45===0 && !isMajor);
+    var isMed    = (i%10===0 && !isMajor && !isMinor);
+
+    var tickLen  = isMajor ? r*.16 : isMinor ? r*.10 : isMed ? r*.06 : r*.04;
+    var tickW    = isMajor ? 2     : isMinor ? 1.5   : 1;
+    var outerR   = r*.93;
+    var innerR   = outerR - tickLen;
+
+    var ox = cx + outerR*Math.cos(rad);
+    var oy = cy + outerR*Math.sin(rad);
+    var ix = cx + innerR*Math.cos(rad);
+    var iy = cy + innerR*Math.sin(rad);
+
+    ctx.beginPath();
+    ctx.moveTo(ox,oy);
+    ctx.lineTo(ix,iy);
+
+    if(isMajor){
+      // North gets accent colour
+      ctx.strokeStyle = (i===0) ? '#e84560' : 'rgba(255,255,255,.85)';
+      ctx.lineWidth = tickW;
+    } else if(isMinor){
+      ctx.strokeStyle = 'rgba(255,255,255,.55)';
+      ctx.lineWidth = tickW;
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,.25)';
+      ctx.lineWidth = 1;
+    }
+    ctx.stroke();
+  }
+
+  /* cardinal labels */
+  var labelR = r*.70;
+  var fontSize = Math.max(9, Math.round(r*.14));
+  ctx.font = 'bold '+fontSize+'px -apple-system,Roboto,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  cardinals.forEach(function(label,idx){
+    var deg = idx*45;
+    var rad2 = (deg-90)*Math.PI/180;
+    var lx = cx + labelR*Math.cos(rad2);
+    var ly = cy + labelR*Math.sin(rad2);
+
+    ctx.save();
+    ctx.translate(lx,ly);
+    if(label==='N'){
+      ctx.fillStyle='#e84560';
+      ctx.shadowColor='rgba(232,69,96,.5)';
+      ctx.shadowBlur=6;
+    } else if(label.length===1){
+      ctx.fillStyle='rgba(255,255,255,.9)';
+      ctx.shadowColor='transparent';
+      ctx.shadowBlur=0;
+    } else {
+      ctx.fillStyle='rgba(255,255,255,.5)';
+      ctx.font='bold '+Math.round(fontSize*.8)+'px -apple-system,Roboto,sans-serif';
+      ctx.shadowColor='transparent';
+      ctx.shadowBlur=0;
+    }
+    ctx.fillText(label,0,0);
+    ctx.restore();
+  });
+}
+
+/* ── smooth rotation via rAF ── */
+function lerp(a,b,t){
+  // shortest path
+  var diff = ((b-a)+540)%360 - 180;
+  return a + diff*t;
+}
+
+function animate(){
+  displayHeading = lerp(displayHeading, targetHeading, 0.12);
+  // Normalise
+  displayHeading = ((displayHeading%360)+360)%360;
+
+  document.getElementById('rose').style.transform =
+    'rotate('+(-displayHeading)+'deg)';
+
+  rafId = requestAnimationFrame(animate);
+}
+
+/* ── compass direction label ── */
+function degToDir(h){
+  var dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(h/22.5)%16];
+}
+
+/* ── sensor callback ── */
+window.onCompassUpdate = function(data){
+  if(data.error){
+    document.getElementById('status').textContent = 'Sensor unavailable';
+    return;
+  }
+  targetHeading = ((data.heading%360)+360)%360;
+  var h = Math.round(targetHeading);
+  document.getElementById('heading-deg').textContent = h+'°';
+  document.getElementById('heading-dir').textContent = degToDir(h);
+
+  var acc = data.accuracy;
+  var accLabel = (acc===0)?'Unreliable':(acc===1)?'Low':(acc===2)?'Medium':'High';
+  document.getElementById('status').textContent = 'Accuracy: '+accLabel;
+};
+
+/* ── resize observer ── */
+function onResize(){
+  var canvas = document.getElementById('ticks');
+  drawRose(canvas);
+}
+
+/* ── init ── */
+function onReady(){
+  var canvas = document.getElementById('ticks');
+  drawRose(canvas);
+
+  animate();
+
+  iappyx.sensor.startCompass('window.onCompassUpdate');
+
+  document.getElementById('status').textContent = 'Waiting for sensor…';
+
+  var ro = new ResizeObserver(function(){
+    drawRose(document.getElementById('ticks'));
+  });
+  ro.observe(document.getElementById('compass-wrap'));
+}
+</script>
+</body></html>

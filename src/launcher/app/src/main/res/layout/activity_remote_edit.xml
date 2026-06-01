@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- REMOTE EDIT FEATURE: layout for the pairing screen.
+     Delete this file when removing the feature. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_home"
+    android:fitsSystemWindows="true">
+
+    <include layout="@layout/settings_toolbar"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <TextView
+            style="@style/TextTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/remoteedit_title"
+            android:paddingBottom="20dp"/>
+
+        <!-- IDLE PANE: shown when sharing is off. Entering the screen
+             does NOT auto-start sharing; the user taps Start sharing to
+             begin. Mirrors the Stop side: stopping flips back to here. -->
+        <LinearLayout
+            android:id="@+id/remoteedit_idle_pane"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/TextHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/remoteedit_idle_subtitle"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                style="@style/TextHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/remoteedit_idle_intro"
+                android:paddingBottom="16dp"/>
+
+            <Button
+                android:id="@+id/remoteedit_start_sharing"
+                style="@style/Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/remoteedit_start_sharing"/>
+        </LinearLayout>
+
+        <!-- ACTIVE PANE: shown while the server is running. -->
+        <LinearLayout
+            android:id="@+id/remoteedit_active_pane"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <LinearLayout
+                style="@style/Card"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    style="@style/TextLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/remoteedit_open_url_prompt"
+                    android:paddingBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/remoteedit_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/accent"
+                    android:textSize="15sp"
+                    android:fontFamily="monospace"
+                    android:textIsSelectable="true"
+                    android:padding="12dp"
+                    android:background="@drawable/btn_secondary"
+                    tools:ignore="SelectableText"
+                    xmlns:tools="http://schemas.android.com/tools"
+                    android:text="—"/>
+
+                <TextView
+                    style="@style/TextLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/remoteedit_code_prompt"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/remoteedit_code"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/text_primary"
+                    android:textSize="36sp"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.2"
+                    android:textStyle="bold"
+                    android:padding="16dp"
+                    android:text="—"/>
+
+                <TextView
+                    android:id="@+id/remoteedit_status"
+                    style="@style/TextHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="20dp"
+                    android:gravity="center"
+                    android:text="@string/remoteedit_status_starting"/>
+
+                <Button
+                    android:id="@+id/remoteedit_disconnect"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/remoteedit_disconnect"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+            <TextView
+                style="@style/TextHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/remoteedit_warning"
+                android:paddingTop="16dp"/>
+
+            <Button
+                android:id="@+id/remoteedit_stop_sharing"
+                style="@style/Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/remoteedit_stop_sharing"
+                android:layout_marginTop="16dp"/>
+
+            <Button
+                android:id="@+id/remoteedit_overlay_toggle"
+                style="@style/Button.Ghost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/remoteedit_overlay_show"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </LinearLayout>
+    </ScrollView>
+</LinearLayout>

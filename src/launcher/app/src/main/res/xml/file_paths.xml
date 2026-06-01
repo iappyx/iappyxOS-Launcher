@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <files-path name="widgets" path="widgets/" />
+    <files-path name="files" path="." />
+    <cache-path name="cache" path="." />
+    <external-files-path name="ext" path="." />
+    <external-path name="external" path="." />
+</paths>

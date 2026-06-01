@@ -1,0 +1,304 @@
+<!-- Built with iappyxOS Launcher - share-to-launcher ambient card -->
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shared</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;font:13px/1.3 system-ui,-apple-system,sans-serif;color:#eee;background:#16161c}
+.card{position:relative;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;background:#1a1a22;box-shadow:0 1px 0 rgba(255,255,255,0.06) inset}
+.thumb{flex:1 1 auto;min-height:0;background:#000 center/cover no-repeat;position:relative;cursor:pointer;overflow:hidden}
+.thumb iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.thumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.thumb.placeholder{background:linear-gradient(135deg,#222,#2a2a35)}
+.play-glyph{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;backdrop-filter:blur(4px)}
+.body{flex:0 0 auto;padding:8px 10px 10px;display:flex;flex-direction:column;gap:2px}
+.title{font-size:12px;font-weight:600;line-height:1.25;color:#eee;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}
+.host{font-size:10px;color:#888;display:flex;align-items:center;gap:5px}
+.kind-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#cfd}
+.kind-video{background:rgba(255,82,82,0.18);color:#ff8a8a}
+.kind-music{background:rgba(106,170,255,0.18);color:#93b5ff}
+.kind-article{background:rgba(170,170,170,0.18);color:#bbb}
+.kind-image{background:rgba(159,255,168,0.18);color:#bff5c4}
+.kind-note{background:rgba(255,210,140,0.20);color:#ffd58a}
+.note-body{flex:1 1 auto;padding:14px;font-size:14px;line-height:1.4;color:#e2e2e2;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.note-body.empty{color:#666;font-style:italic}
+.note-edit{flex:1 1 auto;min-height:0;padding:12px;font-size:14px;line-height:1.4;color:#e2e2e2;background:transparent;border:0;outline:0;resize:none;width:100%;font-family:inherit;caret-color:#FFD58A}
+.note-edit::placeholder{color:#666;font-style:italic}
+.note-edit:focus{caret-color:#FFD58A}
+.saved-pip{position:absolute;left:12px;bottom:36px;font-size:9px;color:#7f7;letter-spacing:0.04em;opacity:0;transition:opacity 240ms ease}
+.saved-pip.show{opacity:0.85}
+.article-text{flex:1 1 auto;min-height:0;padding:12px 12px 6px;display:flex;flex-direction:column;gap:6px;cursor:pointer}
+.article-text .lede{font-size:13px;font-weight:600;line-height:1.25;color:#eee;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.article-text .desc{font-size:11px;line-height:1.35;color:#aaa;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.article-text .favicon{width:14px;height:14px;border-radius:3px;display:inline-block;background:center/cover no-repeat;vertical-align:middle;margin-right:4px}
+.tear{position:absolute;left:0;right:0;top:0;height:3px;background-image:radial-gradient(circle,#888 1px,transparent 1px);background-size:6px 3px;background-repeat:repeat-x;background-position:0 1px;opacity:0.5;pointer-events:none}
+.expiry{position:absolute;right:8px;top:8px;font-size:10px;color:#999;background:rgba(0,0,0,0.45);padding:2px 6px;border-radius:8px;backdrop-filter:blur(4px)}
+img{display:block;width:100%;height:100%;object-fit:contain;background:#000}
+</style>
+</head><body>
+<div class="card" id="root">
+  <div class="tear"></div>
+  <div class="expiry" id="expiry"></div>
+  <div id="content"></div>
+</div>
+<script>
+(function(){
+  // Read meta.json from the widget sandbox via iappyx.storage.loadFile (sync
+  // string return). Every share-card widget has a meta.json sibling to its
+  // widget.html with the classification result + ambient TTL fields written
+  // by ShareReceiverActivity. Sandbox dir is widgets/<id>/ so a bare filename
+  // resolves there.
+  function readMeta(){
+    try {
+      if (window.iappyx && iappyx.storage && iappyx.storage.loadFile){
+        var s = iappyx.storage.loadFile('meta.json');
+        if (s) return JSON.parse(s);
+      }
+    } catch(e){}
+    return {};
+  }
+  function esc(s){ return (s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  }); }
+  function fmtRemaining(ms){
+    if (!ms || ms < 0) return '';
+    var h = Math.floor(ms / 3600000);
+    var d = Math.floor(h / 24);
+    if (d >= 1) return d + 'd';
+    if (h >= 1) return h + 'h';
+    var m = Math.floor(ms / 60000);
+    return Math.max(1, m) + 'm';
+  }
+  function openSource(url){
+    if (!url) return;
+    if (window.iappyx && iappyx.intent && iappyx.intent.openUrl){
+      iappyx.intent.openUrl(url);
+    } else {
+      window.location.href = url;
+    }
+  }
+  function localAssetUrl(filename){
+    // The WebView base URL is `https://widget.local/`, so a relative `./xx`
+    // path won't resolve to a real file on disk. Instead read the bytes via
+    // the bridge's loadFileBase64 and synthesise a data: URL the <img> /
+    // <video> can render directly. Falls back to the relative path for
+    // older builds where the bridge method doesn't exist (legacy behaviour
+    // — broken for images, but safer than crashing).
+    try {
+      if (window.iappyx && iappyx.storage && iappyx.storage.loadFileBase64) {
+        var b64 = iappyx.storage.loadFileBase64(filename);
+        if (b64) {
+          var mime = guessMimeFromName(filename);
+          return 'data:' + mime + ';base64,' + b64;
+        }
+      }
+    } catch (e) {}
+    return './' + filename;
+  }
+  function guessMimeFromName(name){
+    var n = (name || '').toLowerCase();
+    if (n.endsWith('.png')) return 'image/png';
+    if (n.endsWith('.gif')) return 'image/gif';
+    if (n.endsWith('.webp')) return 'image/webp';
+    if (n.endsWith('.bmp')) return 'image/bmp';
+    if (n.endsWith('.heic') || n.endsWith('.heif')) return 'image/heic';
+    if (n.endsWith('.mp4') || n.endsWith('.m4v')) return 'video/mp4';
+    if (n.endsWith('.webm')) return 'video/webm';
+    if (n.endsWith('.mov')) return 'video/quicktime';
+    if (n.endsWith('.mp3')) return 'audio/mpeg';
+    if (n.endsWith('.m4a')) return 'audio/mp4';
+    if (n.endsWith('.ogg')) return 'audio/ogg';
+    return 'image/jpeg';
+  }
+  function render(meta){
+    var kind = (meta.kind || 'note').toLowerCase();
+    var title = meta.title || 'Shared';
+    var host = meta.sourceHost || '';
+    var thumb = meta.thumbnailUrl || null;
+    var localAsset = meta.localAsset || null;
+    var subtitle = meta.subtitle || '';
+    var sourceUrl = meta.sourceUrl || null;
+
+    // Expiry pill
+    var exp = document.getElementById('expiry');
+    if (meta.expiresAt) {
+      var rem = meta.expiresAt - Date.now();
+      exp.textContent = fmtRemaining(rem);
+    } else {
+      exp.style.display = 'none';
+    }
+
+    var c = document.getElementById('content');
+    c.style.flex = '1 1 auto';
+    c.style.display = 'flex';
+    c.style.flexDirection = 'column';
+    c.style.minHeight = '0';
+
+    if (kind === 'note') {
+      // Editable inline notepad. Initial content priority:
+      //   1. note.txt sibling file (user-edited copy from a previous session)
+      //   2. meta.subtitle (the originally-shared text)
+      //   3. blank
+      var savedText = null;
+      try {
+        if (window.iappyx && iappyx.storage && iappyx.storage.loadFile) {
+          savedText = iappyx.storage.loadFile('note.txt');
+        }
+      } catch(e){}
+      var initial = (savedText != null) ? savedText : (subtitle || '');
+      c.innerHTML =
+        '<textarea class="note-edit" id="noteEdit" placeholder="Type to take a note…" spellcheck="false">' +
+          esc(initial) +
+        '</textarea>' +
+        '<div class="saved-pip" id="savedPip">saved</div>' +
+        '<div class="body">' +
+          '<div class="host"><span class="kind-badge kind-note">note</span></div>' +
+        '</div>';
+      var ta = document.getElementById('noteEdit');
+      var pip = document.getElementById('savedPip');
+      // Keep the autoresize natural-feeling: textarea fills the cell via
+      // flex; no manual height adjust needed.
+      var saveTimer = null;
+      var lastSavedValue = initial;
+      function flushSave(){
+        if (!window.iappyx || !iappyx.storage || !iappyx.storage.saveFile) return;
+        var v = ta.value;
+        if (v === lastSavedValue) return;
+        try { iappyx.storage.saveFile('note.txt', v); } catch(e){ return; }
+        lastSavedValue = v;
+        // TTL-clears-on-edit: once the user has invested keystrokes,
+        // promote the note out of "ambient" status so the cleanup sweep
+        // doesn't delete it after the original 7-day window. Rewrite
+        // meta.json with expiresAt=0 (the value readMeta() considers
+        // "no expiry"). Idempotent — safe to call on every save.
+        try {
+          var raw = iappyx.storage.loadFile('meta.json');
+          if (raw) {
+            var m = JSON.parse(raw);
+            if (m.expiresAt && m.expiresAt > 0) {
+              m.expiresAt = 0;
+              iappyx.storage.saveFile('meta.json', JSON.stringify(m));
+            }
+          }
+        } catch(e){}
+        // Brief "saved" pip — ambient confirmation.
+        if (pip){
+          pip.classList.add('show');
+          setTimeout(function(){ pip.classList.remove('show'); }, 900);
+        }
+      }
+      ta.addEventListener('input', function(){
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(flushSave, 600);
+      });
+      ta.addEventListener('blur', flushSave);
+      // Save before the WebView is destroyed (cell recycled, app paused).
+      window.addEventListener('pagehide', flushSave);
+      window.addEventListener('beforeunload', flushSave);
+      return;
+    }
+
+    var videoId = meta.videoId || null;
+
+    // Article cards: if we have a real thumbnail (og:image), use the
+    // thumbnail layout. If we only have a tiny favicon (heuristic: URL
+    // contains "favicon" or icon suffix), fall through to the text-rich
+    // article layout — small icons stretched to a 2x2 cell look bad.
+    var isFavicon = thumb && /favicon|\.ico(\?|$)|apple-touch-icon|\/icon-/i.test(thumb);
+    if (kind === 'article' && (!thumb || isFavicon)) {
+      var faviconHtml = thumb
+        ? '<span class="favicon" style="background-image:url(' + JSON.stringify(thumb) + ')"></span>'
+        : '';
+      c.innerHTML =
+        '<div class="article-text" id="articleBody">' +
+          '<div class="lede">' + esc(title) + '</div>' +
+          (subtitle ? '<div class="desc">' + esc(subtitle) + '</div>' : '') +
+        '</div>' +
+        '<div class="body">' +
+          '<div class="host">' +
+            '<span class="kind-badge kind-article">article</span>' +
+            faviconHtml +
+            (host ? '<span>' + esc(host) + '</span>' : '') +
+          '</div>' +
+        '</div>';
+      var artBody = c.querySelector('#articleBody');
+      var bodyArt = c.querySelector('.body');
+      bodyArt.style.cursor = 'pointer';
+      artBody.addEventListener('click', function(){ openSource(sourceUrl); });
+      bodyArt.addEventListener('click', function(){ openSource(sourceUrl); });
+      return;
+    }
+
+    var thumbHtml = '';
+    if (kind === 'image') {
+      var src = localAsset ? localAssetUrl(localAsset) : (thumb || '');
+      if (src) {
+        thumbHtml = '<div class="thumb"><img src="' + esc(src) + '" alt=""></div>';
+      } else {
+        thumbHtml = '<div class="thumb placeholder"></div>';
+      }
+    } else if (kind === 'video' && localAsset) {
+      // Local video file (shared from gallery) — use HTML5 <video> with controls.
+      thumbHtml = '<div class="thumb"><video src="' + esc(localAssetUrl(localAsset)) +
+                  '" controls preload="metadata" playsinline></video></div>';
+    } else if (kind === 'video' && videoId) {
+      // YouTube — render the thumbnail with a play button. On tap, swap to
+      // the IFrame embed for inline playback (autoplay=1 + playsinline=1
+      // keeps the video inside the card's bounds).
+      thumbHtml = '<div class="thumb" data-yt="' + esc(videoId) + '"' +
+                  (thumb ? ' style="background-image:url(' + JSON.stringify(thumb) + ')"' : '') +
+                  '><div class="play-glyph">▶</div></div>';
+    } else if (thumb) {
+      thumbHtml = '<div class="thumb" style="background-image:url(' + JSON.stringify(thumb) + ')">' +
+        (kind === 'video' ? '<div class="play-glyph">▶</div>' : '') +
+        (kind === 'music' ? '<div class="play-glyph">♫</div>' : '') +
+      '</div>';
+    } else {
+      thumbHtml = '<div class="thumb placeholder">' +
+        (kind === 'video' ? '<div class="play-glyph">▶</div>' : '') +
+        (kind === 'music' ? '<div class="play-glyph">♫</div>' : '') +
+      '</div>';
+    }
+
+    var badgeClass = 'kind-' + kind;
+    c.innerHTML = thumbHtml +
+      '<div class="body">' +
+        '<div class="title">' + esc(title) + '</div>' +
+        '<div class="host">' +
+          '<span class="kind-badge ' + badgeClass + '">' + esc(kind) + '</span>' +
+          (host ? '<span>' + esc(host) + '</span>' : '') +
+        '</div>' +
+      '</div>';
+
+    var thumbEl = c.querySelector('.thumb');
+    var bodyEl = c.querySelector('.body');
+    bodyEl.style.cursor = 'pointer';
+    bodyEl.addEventListener('click', function(){ openSource(sourceUrl); });
+
+    if (thumbEl) {
+      // For YouTube cards: tap the thumb → swap in an iframe embed for
+      // inline playback. The thumb's data-yt attribute carries the video id.
+      var ytId = thumbEl.getAttribute('data-yt');
+      if (ytId) {
+        thumbEl.addEventListener('click', function(){
+          // Replace the thumb's children with an autoplay iframe. Removes
+          // the play glyph + background image so the iframe owns the area.
+          thumbEl.style.backgroundImage = 'none';
+          thumbEl.innerHTML = '<iframe src="https://www.youtube.com/embed/' + encodeURIComponent(ytId) +
+            '?autoplay=1&playsinline=1&rel=0&modestbranding=1" ' +
+            'allow="autoplay; encrypted-media; picture-in-picture" ' +
+            'allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+        });
+      } else if (kind !== 'video' || !localAsset) {
+        // Non-YouTube, non-local-video thumbs open the source URL on tap.
+        thumbEl.addEventListener('click', function(){ openSource(sourceUrl); });
+      }
+    }
+  }
+
+  render(readMeta());
+})();
+</script>
+</body></html>

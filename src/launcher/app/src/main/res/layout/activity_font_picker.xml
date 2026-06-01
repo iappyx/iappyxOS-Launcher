@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_home"
+    android:fitsSystemWindows="true">
+
+    <include layout="@layout/settings_toolbar"/>
+
+    <EditText
+        android:id="@+id/font_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="8dp"
+        android:hint="@string/font_picker_search_hint"
+        android:textColorHint="@color/text_secondary"
+        android:textColor="@color/text_primary"
+        android:inputType="text"
+        android:imeOptions="actionSearch"
+        android:maxLines="1"/>
+
+    <WebView
+        android:id="@+id/font_web"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+</LinearLayout>

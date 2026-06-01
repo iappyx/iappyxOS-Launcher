@@ -1,0 +1,9 @@
+{
+  "slug": "mono_accent",
+  "name": "Mono accent",
+  "subtitle": "Greyscale icons tinted to your system accent (Material You)",
+  "bake": [
+    { "op": "set_saturation", "value": 0.0 }
+  ],
+  "tint": { "op": "system_accent" }
+}

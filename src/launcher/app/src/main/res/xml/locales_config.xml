@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Per-app locale config. Lets Android's system Settings → Apps → iappyxOS
+    Launcher → App language picker (API 33+) discover which locales the
+    app actually has translations for.
+    Keep in sync with values-* directories under res/.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en"/>
+    <locale android:name="nl"/>
+</locale-config>

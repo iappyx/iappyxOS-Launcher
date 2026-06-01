@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>iappyxOS · Pair</title>
+<style>
+  :root {
+    --bg: #0d0d12;
+    --card: #17171f;
+    --line: #2a2a36;
+    --text: #ECECEC;
+    --hint: #8E8E97;
+    --accent: #4FC3F7;
+    --error: #FF5252;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; background:var(--bg); color:var(--text);
+    font: 16px/1.4 -apple-system, "SF Pro Text", Roboto, system-ui, sans-serif; }
+  .wrap { min-height:100%; display:grid; place-items:center; padding:24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px;
+    padding:36px 32px; max-width:380px; width:100%; box-shadow:0 24px 48px rgba(0,0,0,.4); }
+  h1 { font-size:22px; margin:0 0 12px; }
+  p { margin:0 0 24px; color:var(--hint); }
+  .digits { display:flex; gap:10px; justify-content:center; margin: 8px 0 24px; }
+  .digits input {
+    width:48px; height:64px; text-align:center;
+    font: 700 32px/1 "SF Mono", "Menlo", monospace;
+    background:#0a0a10; color:var(--text);
+    border:1px solid var(--line); border-radius:12px;
+    caret-color: var(--accent);
+  }
+  .digits input:focus { outline:2px solid var(--accent); border-color:transparent; }
+  button {
+    width:100%; padding:14px; border:none; border-radius:12px;
+    background:var(--accent); color:#001220; font: 600 15px system-ui;
+    cursor:pointer;
+  }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  .err { color:var(--error); font-size:13px; margin-top:12px; min-height:18px; text-align:center; }
+  .footer { margin-top:18px; text-align:center; font-size:12px; color:var(--hint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Enter pairing code</h1>
+    <p>Open the “Edit on another device” screen on your iappyxOS Launcher to see the 6-digit code.</p>
+    <div class="digits" id="digits">
+      <input maxlength="1" inputmode="numeric" autocomplete="off" />
+      <input maxlength="1" inputmode="numeric" autocomplete="off" />
+      <input maxlength="1" inputmode="numeric" autocomplete="off" />
+      <input maxlength="1" inputmode="numeric" autocomplete="off" />
+      <input maxlength="1" inputmode="numeric" autocomplete="off" />
+      <input maxlength="1" inputmode="numeric" autocomplete="off" />
+    </div>
+    <button id="submit" disabled>Pair</button>
+    <div class="err" id="err"></div>
+    <div class="footer">iappyxOS Launcher · Edit on another device</div>
+  </div>
+</div>
+<script>
+(function(){
+  var inputs = Array.from(document.querySelectorAll('.digits input'));
+  var btn = document.getElementById('submit');
+  var err = document.getElementById('err');
+  inputs[0].focus();
+  function readCode(){ return inputs.map(function(i){return i.value;}).join(''); }
+  function refreshButton(){ btn.disabled = readCode().length !== 6; }
+  inputs.forEach(function(input, idx){
+    input.addEventListener('input', function(){
+      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 1);
+      if (input.value && idx < inputs.length - 1) inputs[idx+1].focus();
+      refreshButton();
+    });
+    input.addEventListener('keydown', function(e){
+      if (e.key === 'Backspace' && !input.value && idx > 0) inputs[idx-1].focus();
+      if (e.key === 'Enter' && !btn.disabled) btn.click();
+    });
+    input.addEventListener('paste', function(e){
+      e.preventDefault();
+      var paste = (e.clipboardData || window.clipboardData).getData('text');
+      var digits = paste.replace(/\D/g,'').slice(0, 6).split('');
+      digits.forEach(function(d, i){ if (inputs[i]) inputs[i].value = d; });
+      refreshButton();
+      var lastIdx = Math.min(digits.length, inputs.length) - 1;
+      if (lastIdx >= 0) inputs[lastIdx].focus();
+    });
+  });
+  btn.addEventListener('click', function(){
+    btn.disabled = true; err.textContent = '';
+    fetch('/pair', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ code: readCode() }),
+    }).then(function(r){
+      if (r.ok) { window.location = '/'; return; }
+      return r.json().catch(function(){ return {error: 'pair failed'}; }).then(function(j){
+        err.textContent = j.error || 'pair failed';
+        inputs.forEach(function(i){ i.value = ''; });
+        inputs[0].focus();
+        refreshButton();
+      });
+    }).catch(function(){
+      err.textContent = 'network error';
+      refreshButton();
+    });
+  });
+})();
+</script>
+</body>
+</html>

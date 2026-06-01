@@ -1,0 +1,255 @@
+{
+  "_comment": "Curated intent-action presets. Each entry is a starter IntentAction the user picks from in the editor; the form is then prefilled and the user fills in just the placeholder values (tunnel name, task name, command, etc.). Verified against each target app's documentation or manifest. Edit JSON only; the runtime serializer is in IntentPresetLibrary.kt.",
+  "presets": [
+    {
+      "id": "wireguard_up",
+      "label": "WireGuard: Bring tunnel up",
+      "category": "VPN",
+      "summary": "Connect a configured WireGuard tunnel by name.",
+      "needsToggle": "In WireGuard: ⋮ → Settings → enable 'Allow remote control intents'.",
+      "fillHints": "Replace the empty 'tunnel' extra value with the EXACT tunnel name as shown in WireGuard (case-sensitive).",
+      "action": {
+        "label": "VPN: <tunnel> up",
+        "verb": "BROADCAST",
+        "packageName": "com.wireguard.android",
+        "className": "com.wireguard.android.model.TunnelManager$IntentReceiver",
+        "action": "com.wireguard.android.action.SET_TUNNEL_UP",
+        "extras": [
+          {"key": "tunnel", "type": "STRING", "value": ""}
+        ]
+      }
+    },
+    {
+      "id": "wireguard_down",
+      "label": "WireGuard: Bring tunnel down",
+      "category": "VPN",
+      "summary": "Disconnect a running WireGuard tunnel by name.",
+      "needsToggle": "In WireGuard: ⋮ → Settings → enable 'Allow remote control intents'.",
+      "fillHints": "Replace the empty 'tunnel' extra value with the EXACT tunnel name (case-sensitive).",
+      "action": {
+        "label": "VPN: <tunnel> down",
+        "verb": "BROADCAST",
+        "packageName": "com.wireguard.android",
+        "className": "com.wireguard.android.model.TunnelManager$IntentReceiver",
+        "action": "com.wireguard.android.action.SET_TUNNEL_DOWN",
+        "extras": [
+          {"key": "tunnel", "type": "STRING", "value": ""}
+        ]
+      }
+    },
+    {
+      "id": "wireguard_refresh",
+      "label": "WireGuard: Refresh all tunnel states",
+      "category": "VPN",
+      "summary": "Re-query WireGuard's tunnel cache. Useful after config edits.",
+      "needsToggle": "In WireGuard: ⋮ → Settings → enable 'Allow remote control intents'.",
+      "fillHints": "No fields to fill — fire as-is.",
+      "action": {
+        "label": "WireGuard refresh",
+        "verb": "BROADCAST",
+        "packageName": "com.wireguard.android",
+        "className": "com.wireguard.android.model.TunnelManager$IntentReceiver",
+        "action": "com.wireguard.android.action.REFRESH_TUNNEL_STATES",
+        "extras": []
+      }
+    },
+    {
+      "id": "tasker_run_task",
+      "label": "Tasker: Run task by name",
+      "category": "Automation",
+      "summary": "Trigger any Tasker task by its exact name.",
+      "needsToggle": "In Tasker: Preferences → Misc → 'Allow External Access'.",
+      "fillHints": "Set 'task_name' to the EXACT task name as shown in Tasker (case-sensitive). Optional: add a 'task_priority' INT extra (1-10) for ordering.",
+      "action": {
+        "label": "Tasker: <task>",
+        "verb": "ACTIVITY",
+        "packageName": "net.dinglisch.android.taskerm",
+        "className": "net.dinglisch.android.taskerm.IntentTaskServer",
+        "action": "net.dinglisch.android.tasker.ACTION_TASK",
+        "extras": [
+          {"key": "task_name", "type": "STRING", "value": ""}
+        ]
+      }
+    },
+    {
+      "id": "macrodroid_trigger",
+      "label": "MacroDroid: Trigger macro",
+      "category": "Automation",
+      "summary": "Run a MacroDroid macro by name.",
+      "needsToggle": "In MacroDroid: Settings → Allow third-party intents.",
+      "fillHints": "Set 'macro_name' to the EXACT macro name as shown in MacroDroid.",
+      "action": {
+        "label": "MacroDroid: <macro>",
+        "verb": "BROADCAST",
+        "packageName": "com.arlosoft.macrodroid",
+        "className": "",
+        "action": "com.arlosoft.macrodroid.action.TRIGGER_MACRO",
+        "extras": [
+          {"key": "macro_name", "type": "STRING", "value": ""}
+        ]
+      }
+    },
+    {
+      "id": "termux_run_command",
+      "label": "Termux: Run command",
+      "category": "Automation",
+      "summary": "Execute a shell command in Termux.",
+      "needsToggle": "In Termux: edit ~/.termux/termux.properties → set 'allow-external-apps = true' → restart Termux. Also accept the 'allow Termux:RunCommand' permission prompt the first time.",
+      "fillHints": "Set RUN_COMMAND_PATH to an absolute path inside Termux (e.g. /data/data/com.termux/files/usr/bin/bash). Set RUN_COMMAND_ARGUMENTS to e.g. -c 'echo hi > /sdcard/hi.txt'. Optional: RUN_COMMAND_BACKGROUND BOOL for headless execution.",
+      "action": {
+        "label": "Termux: <cmd>",
+        "verb": "FOREGROUND_SERVICE",
+        "packageName": "com.termux",
+        "className": "com.termux.app.RunCommandService",
+        "action": "com.termux.RUN_COMMAND",
+        "extras": [
+          {"key": "com.termux.RUN_COMMAND_PATH", "type": "STRING", "value": "/data/data/com.termux/files/usr/bin/bash"},
+          {"key": "com.termux.RUN_COMMAND_ARGUMENTS", "type": "STRING", "value": "-c \"echo hello\""},
+          {"key": "com.termux.RUN_COMMAND_BACKGROUND", "type": "BOOL", "value": "true"}
+        ]
+      }
+    },
+    {
+      "id": "openvpn_start",
+      "label": "OpenVPN for Android: Start profile",
+      "category": "VPN",
+      "summary": "Connect an OpenVPN profile by name.",
+      "needsToggle": "In OpenVPN for Android: Settings → enable 'External API Allow remote control'.",
+      "fillHints": "Replace the empty 'de.blinkt.openvpn.api.profileName' extra value with the EXACT profile name.",
+      "action": {
+        "label": "OpenVPN: <profile> start",
+        "verb": "ACTIVITY",
+        "packageName": "de.blinkt.openvpn",
+        "className": "de.blinkt.openvpn.api.RemoteAction",
+        "action": "de.blinkt.openvpn.api.START_PROFILE",
+        "extras": [
+          {"key": "de.blinkt.openvpn.api.profileName", "type": "STRING", "value": ""}
+        ]
+      }
+    },
+    {
+      "id": "openvpn_disconnect",
+      "label": "OpenVPN for Android: Disconnect",
+      "category": "VPN",
+      "summary": "Disconnect the active OpenVPN profile.",
+      "needsToggle": "Same toggle as Start.",
+      "fillHints": "No fields to fill.",
+      "action": {
+        "label": "OpenVPN disconnect",
+        "verb": "ACTIVITY",
+        "packageName": "de.blinkt.openvpn",
+        "className": "de.blinkt.openvpn.api.DisconnectVPN",
+        "action": "",
+        "extras": []
+      }
+    },
+    {
+      "id": "home_assistant_navigate",
+      "label": "Home Assistant: Navigate to Lovelace path",
+      "category": "Smart Home",
+      "summary": "Open the HA Companion app at a specific dashboard / view.",
+      "needsToggle": "None — Home Assistant Companion accepts deep links by default.",
+      "fillHints": "Replace the empty 'Data URI' with the navigate path, e.g. homeassistant://navigate/lovelace/0 or homeassistant://navigate/lovelace/livingroom.",
+      "action": {
+        "label": "HA: navigate <path>",
+        "verb": "ACTIVITY",
+        "packageName": "io.homeassistant.companion.android",
+        "className": "",
+        "action": "android.intent.action.VIEW",
+        "dataUri": "",
+        "extras": []
+      }
+    },
+    {
+      "id": "obsidian_open_note",
+      "label": "Obsidian: Open note",
+      "category": "Productivity",
+      "summary": "Jump straight to a note in a specific vault.",
+      "needsToggle": "None.",
+      "fillHints": "Replace 'Data URI' with obsidian://open?vault=YourVault&file=Path%2FTo%2FNote (URL-encode '/' as %2F).",
+      "action": {
+        "label": "Obsidian: <note>",
+        "verb": "ACTIVITY",
+        "packageName": "md.obsidian",
+        "className": "",
+        "action": "android.intent.action.VIEW",
+        "dataUri": "obsidian://open?vault=&file=",
+        "extras": []
+      }
+    },
+    {
+      "id": "kde_connect_command",
+      "label": "KDE Connect: Run remote command",
+      "category": "Automation",
+      "summary": "Trigger a saved command on a paired KDE Connect device.",
+      "needsToggle": "On the desktop side: KDE Connect → Plugins → Run command → add and save commands. On Android: pair the device.",
+      "fillHints": "Set the deviceId extra to the paired KDE Connect device id (visible via 'kdeconnect-cli -l' on Linux). Set 'key' to the saved command's UUID. Both shown in KDE Connect's UI.",
+      "action": {
+        "label": "KDE Connect: <cmd>",
+        "verb": "BROADCAST",
+        "packageName": "org.kde.kdeconnect_tp",
+        "className": "org.kde.kdeconnect.Plugins.RunCommandPlugin.RunCommandReceiver",
+        "action": "org.kde.kdeconnect.RUN_COMMAND",
+        "extras": [
+          {"key": "deviceId", "type": "STRING", "value": ""},
+          {"key": "key", "type": "STRING", "value": ""}
+        ]
+      }
+    },
+    {
+      "id": "media_play",
+      "label": "Media: Play / pause currently active player",
+      "category": "Media",
+      "summary": "Send the global PLAY_PAUSE media key to whichever app is the active media controller (Spotify, YouTube Music, Pocket Casts, etc.).",
+      "needsToggle": "None — Android delivers the media key to the topmost media session.",
+      "fillHints": "No fields to fill — works as-is.",
+      "action": {
+        "label": "Media: play/pause",
+        "verb": "BROADCAST",
+        "packageName": "",
+        "className": "",
+        "action": "android.intent.action.MEDIA_BUTTON",
+        "extras": [
+          {"key": "android.intent.extra.KEY_EVENT", "type": "INT", "value": "85"}
+        ]
+      }
+    },
+    {
+      "id": "open_url",
+      "label": "Generic: Open URL",
+      "category": "Generic",
+      "summary": "Launch any URL with the system handler (browser, app deep link, etc.).",
+      "needsToggle": "None.",
+      "fillHints": "Replace the empty 'Data URI' with the URL or scheme: e.g. https://… , tel:… , geo:… , mailto:… .",
+      "action": {
+        "label": "Open URL",
+        "verb": "ACTIVITY",
+        "packageName": "",
+        "className": "",
+        "action": "android.intent.action.VIEW",
+        "dataUri": "",
+        "extras": []
+      }
+    },
+    {
+      "id": "share_text",
+      "label": "Generic: Share text",
+      "category": "Generic",
+      "summary": "Push a plain-text payload to whichever target app you point package at.",
+      "needsToggle": "None.",
+      "fillHints": "Set EXTRA_TEXT to the body. Optionally set Package to the receiver app's id (Slack, Discord, Mail, etc.).",
+      "action": {
+        "label": "Share text",
+        "verb": "ACTIVITY",
+        "packageName": "",
+        "className": "",
+        "action": "android.intent.action.SEND",
+        "mimeType": "text/plain",
+        "extras": [
+          {"key": "android.intent.extra.TEXT", "type": "STRING", "value": ""},
+          {"key": "android.intent.extra.SUBJECT", "type": "STRING", "value": ""}
+        ]
+      }
+    }
+  ]
+}

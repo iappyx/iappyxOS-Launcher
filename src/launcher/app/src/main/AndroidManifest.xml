@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Generated widgets may call any bridge — declare bridge-relevant permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Per-type FGS permissions are MANDATORY when targetSdk >= 34. Each
+         android:foregroundServiceType="X" on a <service> below requires its
+         matching FOREGROUND_SERVICE_X permission, otherwise startForeground()
+         throws SecurityException and the whole process dies. AudioService
+         (mediaPlayback) caused the radio-widget crash; the others are latent
+         crashes that fire the moment that bridge is exercised. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Keep CPU alive while the AI is generating so the screen locking
+         mid-request doesn't kill the TCP connection to Anthropic. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <!-- Some permission-gated receivers (WireGuard's tunnel toggle is the
+         common one) require the caller to declare a target-app-defined
+         permission. We deliberately keep this list minimal — adding a
+         line here shows up as "needs permission X" at install time, so
+         the bar is "is this target valuable enough to broadcast on
+         most users' devices?" Adding more is a per-request decision. -->
+    <uses-permission android:name="com.wireguard.android.permission.CONTROL_TUNNELS" />
+
+    <!-- Lets the warm-up flow restore our calling activity to the top of
+         its stack after the broadcast fires (e.g. Test from the editor:
+         the editor pops back into focus instead of leaving the user
+         stuck in the warm-up target's UI). Normal-protection: auto-
+         granted, no runtime prompt. -->
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+
+    <!-- Needed for the app drawer's long-press → "Uninstall" action. Without
+         this, Intent.ACTION_DELETE on package:* silently fails on Android
+         11+ (the system never shows the uninstall confirmation dialog). -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
+    <!-- Launcher-specific: bind AppWidgets, change wallpaper, expand status bar -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+
+    <!-- Alarms survive reboot + allow exact scheduling -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <!-- Biometric (for BiometricBridge in batch 4E) -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <!-- Calendar read/write -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <!-- Microphone for speech-to-text -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Camera -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- Contacts -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
+    <!-- SMS -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- NFC -->
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
+    <!-- Bluetooth (classic + LE) -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+
+    <!-- WiFi Direct + NSD -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
+    <!-- mDNS / multicast network discovery (used by the discovery bridges
+         widgets can opt into). -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+    <!-- Background location — geofencing while the launcher isn't foreground.
+         Required separately from ACCESS_FINE_LOCATION on Android 10+. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- Activity recognition — step counter, motion / activity detection bridges. -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+
+    <!-- Sensors at >200 Hz on Android 12+. Without this, accelerometer /
+         gyroscope subscriptions silently throttle and games / haptic-rich
+         widgets feel laggy. -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+
+    <!-- Audio routing + volume control for the audio bridge. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- Notification policy — DND mode toggling. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
+    <!-- Biometric legacy companion to USE_BIOMETRIC for older API levels. -->
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+    <!-- Media access. Android 13+ split storage into per-type READ_MEDIA_*;
+         older API levels still want READ/WRITE_EXTERNAL_STORAGE with
+         maxSdkVersion bounds so they don't show as ungranted on modern
+         devices. Mirrors the iappyxOS shell APK. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+
+    <!-- Silent activity launch from trigger callbacks (per the
+         "Background activity starts" pattern — without this, triggers that
+         try to open an activity from the background fail silently). -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- Short-running FGS variant (≤3 minutes, no per-type permission needed
+         beyond this one). Some bridges use it for one-shot work. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE" />
+
+    <!-- uses-feature: declare hardware as OPTIONAL (required="false") so the
+         Play Store doesn't filter the install on devices missing one of
+         these. The launcher itself works without any of them; widgets that
+         need a sensor will surface their own permission flow at use time. -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
+
+    <!-- Default attribution declaration (API 31+). Android's AppOps logs an
+         E AppOps "attributionTag not declared in manifest" error when a
+         system service or library calls ops with an empty attribution tag
+         and the app has no <attribution> entries at all. Common offenders:
+         Play Services (location ops via ProfileGeofenceManager), AndroidX
+         Media3 (audio session playback state). Declaring at least one
+         attribution gives AppOps something to match against — purely
+         diagnostic noise reduction, no runtime behavior change. -->
+    <attribution
+        android:tag="default"
+        android:label="@string/app_name" />
+
+    <application
+        android:name=".IappyxApp"
+        android:allowBackup="false"
+        android:enableOnBackInvokedCallback="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.iappyxLauncher"
+        android:usesCleartextTraffic="true"><!-- Generated widgets reach arbitrary endpoints — radio streams (Icecast/SHOUTcast/streamtheworld), local-network IoT devices, legacy weather APIs etc. — many of which are HTTP-only. Same setting as the iappyxOS shell APK; without it Android 9+ blocks cleartext requests and ExoPlayer / fetch / OkHttp all fail with CleartextNotPermittedException. -->
+
+        <!-- BACKUP: Backup & restore split into its own activity. -->
+        <activity
+            android:name=".BackupSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/settings_backup_section" />
+
+        <!-- Plan A Phase 4a / 4b — AI keys + display/appearance splits. -->
+        <activity
+            android:name=".AISettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/settings_ai_section" />
+        <activity
+            android:name=".DisplayAppearanceSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/settings_home_layout_section" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <activity
+            android:name=".ProfilesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <activity
+            android:name=".IntentActionEditorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <activity
+            android:name=".about.AboutActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <!-- USAGE: BEGIN — Widget battery-usage activity. Removable. -->
+        <activity
+            android:name=".usage.WidgetUsageActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="Battery usage" />
+        <!-- USAGE: END -->
+
+        <!-- APPLOCK: BEGIN — biometric / device-credential app lock screen. Removable. -->
+        <activity
+            android:name=".applock.AppLocksSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/settings_app_locks_label" />
+        <!-- APPLOCK: END -->
+
+        <!-- PLUGINS: BEGIN — top-level Plugins activity + per-plugin detail. -->
+        <activity
+            android:name=".plugins.PluginsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="Plugins" />
+        <activity
+            android:name=".plugins.PluginDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="Plugin details" />
+        <!-- PLUGINS: END -->
+
+        <activity
+            android:name=".about.AcknowledgementsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <activity
+            android:name=".GeofencePickerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <activity
+            android:name=".AppPickerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <activity
+            android:name=".StockWidgetPickerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <!-- Sharing flows. Each runs full-screen on top of the launcher
+             with its own dark theme; finish() takes the user back. -->
+        <activity
+            android:name=".QRSendActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" />
+        <activity
+            android:name=".QRReceiveActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" />
+        <activity
+            android:name=".NearbySendActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+        <activity
+            android:name=".NearbyReceiveActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+        <activity
+            android:name=".ShowcaseBrowserActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/app_name" />
+
+        <!-- Share-to-Launcher entry point. Receives ACTION_SEND from any app,
+             classifies the payload, and creates an ambient widget on the
+             home screen. Translucent theme + finishOnTaskLaunch so the
+             receiver doesn't show its own UI; a brief toast + the new
+             widget on home is the entire visible behaviour. -->
+        <activity
+            android:name=".sharing.ShareReceiverActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- Per-widget file sharing (camera photo capture, document picker etc.) -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.iappyx.launcher.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <receiver
+            android:name=".AlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Services ported from iappyxOS ShellActivity, hosted per-widget via WidgetHost. -->
+        <service
+            android:name=".AudioService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <service
+            android:name=".LocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+        <service
+            android:name=".NetworkService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+        <service
+            android:name=".TaskService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+        <service
+            android:name=".TriggerKeepaliveService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps widget triggers active" />
+        </service>
+
+        <!-- Push (FCM) messaging service. Class is ported but the JS bridge isn't
+             registered — left declared so the class doesn't error if invoked. -->
+        <!-- AppCompat per-app locale persistence. With autoStoreLocales=true
+             AppCompat saves the locale picked via setApplicationLocales on
+             pre-API-33 devices (API 33+ uses the platform LocaleManager). -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
+        <service
+            android:name=".PushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Programmable live wallpaper. Inert until the user picks
+             "iappyxOS Live" in the system wallpaper picker. Hosts a WebView
+             that renders an HTML payload (Phase 1: hardcoded clock asset).
+             Runs in its own process so a misbehaving wallpaper can't take
+             the launcher down with it. -->
+        <service
+            android:name=".wallpaper.IappyxWallpaperService"
+            android:exported="true"
+            android:label="@string/wallpaper_label"
+            android:permission="android.permission.BIND_WALLPAPER"
+            android:process=":wallpaper">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/wallpaper_meta" />
+        </service>
+
+        <!-- Notification badges: listener service the user grants in
+             Settings → Notifications → Notification access. Reads active
+             notifications and feeds per-package counts to BadgeStore so
+             IconCell / FolderCell can paint the red bubble. -->
+        <service
+            android:name=".notify.NotificationBadgeListener"
+            android:exported="true"
+            android:label="iappyxOS notification badges"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Receivers -->
+        <receiver android:name=".NotificationActionReceiver" android:exported="false" />
+        <receiver android:name=".ScheduledNotificationReceiver" android:exported="false" />
+        <receiver android:name=".GeofenceTransitionReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="com.iappyx.launcher.GEOFENCE_TRANSITION" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".TriggerReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+                <action android:name="android.intent.action.HEADSET_PLUG" />
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
+                <action android:name="android.intent.action.AIRPLANE_MODE" />
+                <action android:name="android.intent.action.BATTERY_LOW" />
+                <action android:name="android.intent.action.BATTERY_OKAY" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".LauncherActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:stateNotNeeded="true"
+            android:resizeableActivity="true"
+            android:configChanges="keyboard|keyboardHidden|mcc|mnc|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode">
+
+            <!-- Standard launcher entry -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Register as a HOME launcher so it shows up in the default-launcher picker -->
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- REMOTE EDIT FEATURE: BEGIN. To remove the feature, delete this
+             activity + service declaration. The corresponding code lives
+             in com.iappyx.launcher.remoteedit/. -->
+        <activity
+            android:name=".remoteedit.RemoteEditActivity"
+            android:exported="false"
+            android:label="@string/remoteedit_title"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode|density|locale"
+            android:theme="@style/Theme.iappyxLauncher" />
+        <service
+            android:name=".remoteedit.RemoteEditService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+        <!-- REMOTE EDIT FEATURE: END -->
+
+        <!-- PLUGINS: BEGIN. To remove the plugin system, delete this
+             block and the com.iappyx.launcher.plugins package — see
+             plugins/README.md.
+             Showcase-only distribution: no .iappyxplugin file
+             IntentFilter, no Install-from-URL. Plugins arrive via the
+             curated showcase repo + on-device "Browse showcase" entry. -->
+        <!-- Hosts a plugin's settings.html in a WebView with the same
+             capability bridges as the plugin runtime. Launched from
+             Settings → Plugins → Configure. -->
+        <activity
+            android:name="com.iappyx.launcher.plugins.PluginSettingsActivity"
+            android:exported="false"
+            android:label="Configure plugin"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <!-- Receives AlarmManager fires for plugins with the `scheduler`
+             capability. Wakes the launcher process if dead. -->
+        <receiver
+            android:name="com.iappyx.launcher.plugins.PluginAlarmReceiver"
+            android:exported="false" />
+        <!-- Re-arms persisted plugin schedules after a device reboot
+             (AlarmManager forgets PendingIntents). Also covers
+             package-replaced events so a launcher upgrade doesn't
+             drop plugin schedules. -->
+        <receiver
+            android:name="com.iappyx.launcher.plugins.PluginBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <!-- Hosts plugins flagged `isolatedProcess: true` in a separate
+             Android process. The launcher's main process binds via
+             Messenger; a crash here doesn't take the launcher down.
+             setDataDirectorySuffix("plugin_isolated") in onCreate. -->
+        <service
+            android:name="com.iappyx.launcher.plugins.PluginIsolatedService"
+            android:exported="false"
+            android:process=":plugin_isolated" />
+        <!-- PLUGINS: END -->
+
+        <!-- QUICK WIDGETS: BEGIN. To remove this feature delete the entire
+             block + the quickwidget/ source package + the strings between
+             the QUICK WIDGETS markers in strings.xml. Self-contained. -->
+        <activity
+            android:name="com.iappyx.launcher.quickwidget.QuickWidgetPanelActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:noHistory="true"
+            android:theme="@style/Theme.iappyxLauncher.QuickWidgetPanel" />
+        <activity
+            android:name="com.iappyx.launcher.quickwidget.QuickWidgetPickerActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <service
+            android:name="com.iappyx.launcher.quickwidget.QuickWidget1Tile"
+            android:exported="true"
+            android:icon="@drawable/ic_apps"
+            android:label="@string/quickwidget_tile1_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.iappyx.launcher.quickwidget.QuickWidget2Tile"
+            android:exported="true"
+            android:icon="@drawable/ic_apps"
+            android:label="@string/quickwidget_tile2_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.iappyx.launcher.quickwidget.QuickWidget3Tile"
+            android:exported="true"
+            android:icon="@drawable/ic_apps"
+            android:label="@string/quickwidget_tile3_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.iappyx.launcher.quickwidget.QuickWidget4Tile"
+            android:exported="true"
+            android:icon="@drawable/ic_apps"
+            android:label="@string/quickwidget_tile4_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.iappyx.launcher.quickwidget.QuickWidget5Tile"
+            android:exported="true"
+            android:icon="@drawable/ic_apps"
+            android:label="@string/quickwidget_tile5_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <activity
+            android:name="com.iappyx.launcher.quickwidget.QuickWidgetManagerActivity"
+            android:exported="false"
+            android:label="@string/settings_quickwidgets_label"
+            android:theme="@style/Theme.iappyxLauncher.Opaque" />
+        <!-- QUICK WIDGETS: END -->
+
+        <!-- FIELD (experimental): native bubble-organism app-drawer alternative
+             (Settings → Display & Appearance → App drawer → The Field).
+             Self-contained: remove this <activity> + the fieldnative/ package +
+             the settings chooser to fully excise it. -->
+        <activity
+            android:name="com.iappyx.launcher.theme.ThemeEditorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/settings_widget_theme_label" />
+        <activity
+            android:name="com.iappyx.launcher.theme.FontPickerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.iappyxLauncher.Opaque"
+            android:label="@string/font_picker_title" />
+        <activity
+            android:name="com.iappyx.launcher.fieldnative.FieldNativeActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.iappyxLauncher.FieldTranslucent" />
+
+    </application>
+
+</manifest>

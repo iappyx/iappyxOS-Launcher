@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ── Surface colors ──────────────────────────────────────────── -->
+    <color name="bg_home">#0D0D1A</color>
+    <color name="bg_cell">#1A1A2E</color>
+    <!-- Higher elevation surface (cards / popups over bg_cell) -->
+    <color name="surface_high">#1F1F2E</color>
+
+    <!-- ── Text colors ─────────────────────────────────────────────── -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#A0A0B8</color>
+    <!-- Disabled/hint white: 50% on white. Used for placeholders, hints,
+         disabled labels. -->
+    <color name="text_disabled">#80FFFFFF</color>
+
+    <!-- ── Accent (brand) ──────────────────────────────────────────── -->
+    <color name="accent">#4FC3F7</color>
+    <!-- Accent at 12% — used for filled "tonal" chip backgrounds in
+         active states (e.g. profiles "Active" pill bg). -->
+    <color name="accent_chip_bg">#1F4FC3F7</color>
+    <!-- Accent at 20% — slightly stronger tonal background. -->
+    <color name="accent_chip_bg_strong">#334FC3F7</color>
+    <!-- Accent at 40% — chip strokes around active selections. -->
+    <color name="accent_chip_stroke">#664FC3F7</color>
+    <!-- Light tint of accent — used for foreground text on tonal
+         accent backgrounds (e.g. "Active" pill label). -->
+    <color name="accent_light">#FF9DEAFF</color>
+
+    <!-- ── Separators / strokes (white-on-dark alpha ladders) ───────── -->
+    <color name="separator">#22FFFFFF</color>
+    <color name="separator_subtle">#1FFFFFFF</color>
+    <color name="separator_strong">#33FFFFFF</color>
+
+    <!-- ── White overlays (used as backgrounds, NOT strokes) ────────── -->
+    <color name="overlay_white_medium">#55FFFFFF</color>
+    <color name="overlay_white_strong">#CCFFFFFF</color>
+
+    <!-- ── Scrims (for dim backdrops behind dialogs / drawers) ────── -->
+    <color name="scrim_strong">#CC0D0D1A</color>
+
+    <!-- ── Status colors ───────────────────────────────────────────── -->
+    <color name="danger">#FFE57373</color>
+    <color name="danger_strong">#FFE53935</color>
+    <color name="danger_link">#FFB0B0</color>
+
+    <!-- ── Chrome surfaces (translucent, sit over wallpaper) ───────── -->
+    <color name="dock_surface">#661A1A2E</color>
+    <color name="edit_bar_surface">#F00D0D1A</color>
+    <color name="bottomsheet_surface">#1A1A2E</color>
+
+    <!-- Adaptive icon background. -->
+    <color name="ic_launcher_background">#0D0D1A</color>
+</resources>

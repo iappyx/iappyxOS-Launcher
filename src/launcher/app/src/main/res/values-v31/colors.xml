@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Material You dynamic colors (Android 12+).
+  system_accent1_* = primary accent from the user's wallpaper / system theme.
+  system_neutral1_*, system_neutral2_* = neutral surfaces.
+
+  We keep the same names as in values/colors.xml — the runtime picks the deepest
+  matching resource, so v31+ devices pick up the user's system colors while
+  API 29-30 devices fall back to our teal defaults.
+-->
+<resources>
+    <color name="bg_home">@android:color/system_neutral1_900</color>
+    <color name="bg_cell">@android:color/system_neutral1_800</color>
+    <color name="text_primary">@android:color/system_neutral1_50</color>
+    <color name="text_secondary">@android:color/system_neutral2_200</color>
+    <color name="accent">@android:color/system_accent1_200</color>
+</resources>

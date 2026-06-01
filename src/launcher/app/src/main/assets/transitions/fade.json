@@ -1,0 +1,6 @@
+{
+  "page": {
+    "translationX": "0",
+    "alpha":        "max(0, 1 - abs(p))"
+  }
+}

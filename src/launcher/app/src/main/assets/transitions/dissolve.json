@@ -1,0 +1,11 @@
+{
+  "page": {
+    "translationX": "0",
+    "alpha":        "1"
+  },
+  "cell": {
+    "alpha":  "1 - clamp((abs(p) - (sin(cellIndex * 9.59) + 1) / 4) / 0.5, 0, 1)",
+    "scaleX": "1 - 0.08 * clamp((abs(p) - (sin(cellIndex * 9.59) + 1) / 4) / 0.5, 0, 1)",
+    "scaleY": "1 - 0.08 * clamp((abs(p) - (sin(cellIndex * 9.59) + 1) / 4) / 0.5, 0, 1)"
+  }
+}

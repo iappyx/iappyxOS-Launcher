@@ -1,0 +1,231 @@
+<!--
+  MIT License - Copyright (c) 2026 iappyx
+  Bouncing balls — 20 small colourful spheres bounce gently between the icons,
+  widgets, and dock cells on the home screen. The launcher exposes those
+  positions through the layout bridge (see iappyxLayout / iappyx.onLayoutChanged
+  in the wallpaper system prompt) — this file is the canonical reference
+  implementation that uses it.
+-->
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+</head>
+<body style="margin:0;padding:0;background:#04060d;overflow:hidden;">
+<canvas id="bg" style="position:fixed;inset:0;width:100vw;height:100vh;display:block;"></canvas>
+<script>
+(function () {
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+
+  function fit() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  fit();
+  window.addEventListener('resize', fit);
+
+  // Layout bridge state. Always parseable thanks to the empty-default in
+  // LayoutBridge — works even if iappyxLayout hasn't received its first
+  // broadcast yet (cells/dock will be empty arrays for a frame or two).
+  let layout = window.iappyxLayout
+    ? JSON.parse(iappyxLayout.get())
+    : { screen:{width:0,height:0,density:1}, pageCount:0, pageWidth:0,
+        currentPage:0, systemBars:{top:0,bottom:0}, cells:[], dock:[] };
+  let pageOffset = 0;
+  let visible = true;
+
+  if (window.iappyx) {
+    iappyx.log('bouncing_balls booted');
+    iappyx.onLayoutChanged = (next) => { layout = next; };
+    iappyx.onPageOffset    = (x)    => { pageOffset = x; };
+    iappyx.onVisibility    = (v)    => { visible = !!v; };
+  }
+
+  // Ball factory — golden-angle hue rotation gives a nicely-distributed
+  // rainbow without two adjacent balls sharing a colour. Slight per-ball
+  // variance in size + speed keeps the cluster from looking mechanical.
+  const COUNT = 20;
+  const GOLDEN = 137.508;
+  // Hard cap on per-frame movement. The ball's motion delta MUST stay below
+  // its own radius, otherwise it can step ACROSS a thin part of an icon's
+  // bounding box in a single frame and the collision check sees the ball
+  // already past the rect — classic discrete-time tunneling. With our 5-9 px
+  // radii and a 1.5 cap, deltas stay safely below the smallest ball's size.
+  const MAX_SPEED = 1.5;
+  const balls = [];
+  for (let i = 0; i < COUNT; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 0.6 + Math.random() * 0.5; // gentle: ~36–66 px/sec at 60fps
+    balls.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      // 5–9px core radius — bigger than the 4-px spacing between icon cells
+      // so a ball can never physically squeeze through the gap. Halo (×2.4)
+      // extends the visible footprint to ~12–22px, plenty for a soft glow
+      // without competing with the icons.
+      r: 5 + Math.random() * 4,
+      hue: (i * GOLDEN) % 360,
+      // Per-ball target speed used to softly damp toward gentle motion after
+      // a collision spike — without this, balls that ricochet off a corner
+      // can pick up energy over time.
+      target: speed,
+    });
+  }
+
+  // Combine the static layout snapshot with the live page offset to produce
+  // the rectangles that EXIST RIGHT NOW in the wallpaper's coordinate space.
+  // Cells from non-current pages slide off-screen as the user swipes; the
+  // dock is fixed and doesn't get the swipe transform.
+  //
+  // pageOffset semantics: the WallpaperManager.setWallpaperOffsets contract
+  // says x is in [0, 1] across THE WHOLE PAGER, not per-page. So 4 home
+  // pages map to offset 0, 0.33, 0.66, 1.0. Convert to a fractional
+  // home-page index before computing per-cell drift:
+  //
+  //     fracHome = pageOffset * max(1, pageCount - 1)
+  //
+  // Then a cell on home page P sits at `cell.x + (P - fracHome) * pageWidth`.
+  function liveRects() {
+    const out = [];
+    if (!layout) return out;
+    const pw = layout.pageWidth || 0;
+    const fracHome = pageOffset * Math.max(1, (layout.pageCount || 1) - 1);
+    for (const c of layout.cells || []) {
+      out.push({
+        x: c.x + (c.page - fracHome) * pw,
+        y: c.y, w: c.w, h: c.h,
+      });
+    }
+    for (const d of layout.dock || []) out.push(d);
+    return out;
+  }
+
+  function step() {
+    if (!visible) { requestAnimationFrame(step); return; }
+    const w = canvas.width, h = canvas.height;
+    const rects = liveRects();
+
+    // Soft trail-fade — paint a translucent dark layer instead of clearing
+    // outright. Gives each ball a faint motion-blur halo that reads as
+    // "smooth" rather than "stuttering" if a frame slips. Alpha tuned low so
+    // the dark background still settles in a few hundred ms after a pause.
+    ctx.fillStyle = 'rgba(4, 6, 13, 0.22)';
+    ctx.fillRect(0, 0, w, h);
+
+    for (const b of balls) {
+      b.x += b.vx;
+      b.y += b.vy;
+
+      // Window-edge bounce. Clamp position before reflecting so we never
+      // read a stale frame where the ball's centre is still off-screen.
+      if (b.x < b.r)         { b.x = b.r;       b.vx = Math.abs(b.vx); }
+      if (b.x > w - b.r)     { b.x = w - b.r;   b.vx = -Math.abs(b.vx); }
+      if (b.y < b.r)         { b.y = b.r;       b.vy = Math.abs(b.vy); }
+      if (b.y > h - b.r)     { b.y = h - b.r;   b.vy = -Math.abs(b.vy); }
+
+      // Cell + dock collisions. Multi-pass: a single sweep through `rects`
+      // can resolve one rect's overlap by pushing the ball INTO an adjacent
+      // rect (e.g. a ball wedged between two icons with only 4px of gap).
+      // Up to 3 passes; if no rect reports overlap in a pass we exit early.
+      // Two cases per rect:
+      //   1. Ball centre is OUTSIDE the rect — find the closest point on
+      //      the rect, push the ball out along the contact normal, reflect
+      //      velocity. Standard circle-vs-AABB.
+      //   2. Ball centre is INSIDE the rect — happens at startup (random
+      //      seed) or when a layout commit lands a new cell on top of a
+      //      ball. Push the ball out via the SHORTEST axis-aligned exit,
+      //      which gives a clean visual pop instead of a weird diagonal
+      //      teleport.
+      for (let pass = 0; pass < 3; pass++) {
+        let anyOverlap = false;
+        for (const r of rects) {
+          if (r.w <= 0 || r.h <= 0) continue;
+          // Cull rects entirely off-canvas — they can't possibly overlap.
+          if (r.x + r.w < -8 || r.x > w + 8) continue;
+          const closestX = Math.max(r.x, Math.min(b.x, r.x + r.w));
+          const closestY = Math.max(r.y, Math.min(b.y, r.y + r.h));
+          const dx = b.x - closestX;
+          const dy = b.y - closestY;
+          const distSq = dx * dx + dy * dy;
+          if (distSq >= b.r * b.r) continue;
+          anyOverlap = true;
+
+          if (distSq < 0.01) {
+            // Inside the rect — pick the shortest axis to escape on. Push
+            // out by `b.r + 0.5` so the next collision check leaves a tiny
+            // margin and we don't immediately re-trigger inside-detection.
+            const left  = b.x - r.x;
+            const right = r.x + r.w - b.x;
+            const top   = b.y - r.y;
+            const bot   = r.y + r.h - b.y;
+            const m = Math.min(left, right, top, bot);
+            const margin = 0.5;
+            if (m === left)       { b.x = r.x - b.r - margin;          b.vx = -Math.abs(b.vx); }
+            else if (m === right) { b.x = r.x + r.w + b.r + margin;    b.vx =  Math.abs(b.vx); }
+            else if (m === top)   { b.y = r.y - b.r - margin;          b.vy = -Math.abs(b.vy); }
+            else                  { b.y = r.y + r.h + b.r + margin;    b.vy =  Math.abs(b.vy); }
+          } else {
+            const dist = Math.sqrt(distSq);
+            const nx = dx / dist, ny = dy / dist;
+            const overlap = b.r - dist + 0.5; // small extra so we exit cleanly
+            b.x += nx * overlap;
+            b.y += ny * overlap;
+            const dot = b.vx * nx + b.vy * ny;
+            b.vx -= 2 * dot * nx;
+            b.vy -= 2 * dot * ny;
+          }
+        }
+        if (!anyOverlap) break;
+      }
+
+      // After multi-pass resolution, the ball might have been pushed back
+      // outside the canvas by a corner-case rect (e.g. a dock cell on the
+      // bottom edge). Re-clamp so the next frame starts fully on-screen.
+      if (b.x < b.r)     b.x = b.r;
+      if (b.x > w - b.r) b.x = w - b.r;
+      if (b.y < b.r)     b.y = b.r;
+      if (b.y > h - b.r) b.y = h - b.r;
+
+      // Soft speed-damp toward the per-ball target. Without this, repeated
+      // ricochets would compound and a ball can end up zipping across the
+      // screen — defeating the whole "gently bouncing" brief.
+      const sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+      if (sp > 0.001) {
+        const k = 0.04; // small per-frame nudge toward target speed
+        const scaled = b.target / sp;
+        b.vx = b.vx * (1 - k) + b.vx * scaled * k;
+        b.vy = b.vy * (1 - k) + b.vy * scaled * k;
+      }
+      // Hard velocity cap — the only line that absolutely guarantees a ball
+      // can't tunnel. If a corner-collision sequence ever produces a
+      // velocity larger than the smallest ball's radius, this line saves us.
+      const sp2 = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+      if (sp2 > MAX_SPEED) {
+        const s = MAX_SPEED / sp2;
+        b.vx *= s; b.vy *= s;
+      }
+
+      // Render: outer glow halo, then a brighter core. The halo gives the
+      // ball "weight" against the dark background; the core keeps the colour
+      // recognisable even where balls overlap.
+      const halo = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 2.4);
+      halo.addColorStop(0,   `hsla(${b.hue}, 80%, 65%, 0.85)`);
+      halo.addColorStop(0.5, `hsla(${b.hue}, 80%, 50%, 0.35)`);
+      halo.addColorStop(1,   `hsla(${b.hue}, 80%, 50%, 0)`);
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r * 2.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = `hsl(${b.hue}, 80%, 65%)`;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+</script>
+</body></html>

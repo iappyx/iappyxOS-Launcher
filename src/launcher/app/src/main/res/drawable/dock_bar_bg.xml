@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Frosted "tray" behind the dock pager. Reads as a single floating capsule
+     instead of loose icons. Blur-behind is applied in code on API 31+.
+     Surface tint and stroke flip with the day/night theme via
+     values-night/colors.xml overrides. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/dock_surface" />
+    <corners android:radius="28dp" />
+    <stroke android:width="1dp" android:color="@color/separator" />
+</shape>

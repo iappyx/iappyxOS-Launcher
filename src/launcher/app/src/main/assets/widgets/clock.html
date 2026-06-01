@@ -1,0 +1,39 @@
+<!-- Built with iappyxOS Launcher -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="iappyx-widget" content="pause, refresh=1s">
+<title>Clock</title>
+<style>
+  /* Transparent → floats on the wallpaper, so text stays legible-on-wallpaper
+     (white + muted) rather than theme surface colors. Typography DOES follow
+     the theme so Font / Text-size presets affect it. */
+  html, body { margin: 0; padding: 0; height: 100%; background: transparent; color: #fff;
+               font-family: var(--iappyx-font); overflow: hidden; }
+  #root { display: flex; flex-direction: column; align-items: center; justify-content: center;
+          height: 100%; gap: 6px; padding: 8px; box-sizing: border-box; }
+  #time { font-size: var(--iappyx-text-xl); font-weight: var(--iappyx-weight-bold); letter-spacing: 0.5px; }
+  #date { font-size: var(--iappyx-text-sm); color: rgba(255,255,255,0.65); }
+</style>
+</head>
+<body>
+  <div id="root">
+    <div id="time">--:--</div>
+    <div id="date"></div>
+  </div>
+<script>
+(function(){
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function tick(){
+    var d = new Date();
+    document.getElementById('time').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    document.getElementById('date').textContent = d.toDateString();
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

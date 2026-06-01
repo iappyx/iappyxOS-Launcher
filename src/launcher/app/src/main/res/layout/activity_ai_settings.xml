@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_home"
+    android:fitsSystemWindows="true">
+
+    <include layout="@layout/settings_toolbar"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <LinearLayout
+            style="@style/Card"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                style="@style/TextLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_ai_key_label"
+                android:paddingBottom="4dp"/>
+
+            <TextView
+                style="@style/TextHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_ai_key_hint"
+                android:paddingBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/anthropic_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/settings_ai_key_placeholder"
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:background="@drawable/btn_secondary"
+                android:padding="12dp"
+                android:inputType="textPassword"/>
+
+            <TextView
+                android:id="@+id/anthropic_key_remove"
+                style="@style/TextLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_ai_key_remove"
+                android:textColor="@color/danger_link"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp">
+
+                <TextView
+                    style="@style/TextLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/settings_ai_model_label"/>
+
+                <TextView
+                    android:id="@+id/model_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:paddingEnd="8dp"
+                    android:paddingStart="0dp"/>
+
+                <TextView
+                    android:id="@+id/model_refresh"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_models_refresh"
+                    android:textColor="@color/accent"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:padding="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"/>
+            </LinearLayout>
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/anthropic_model"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/settings_ai_model_placeholder"
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:background="@drawable/btn_secondary"
+                android:padding="12dp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:cursorVisible="false"
+                android:longClickable="false"
+                android:popupBackground="@drawable/btn_secondary"
+                android:drawableEnd="@android:drawable/arrow_down_float"
+                android:drawablePadding="8dp"/>
+
+            <TextView
+                style="@style/TextLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_iterate_model_label"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp"/>
+
+            <TextView
+                style="@style/TextHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_iterate_model_hint"
+                android:paddingBottom="6dp"/>
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/iterate_model"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/settings_iterate_model_placeholder"
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:background="@drawable/btn_secondary"
+                android:padding="12dp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:cursorVisible="false"
+                android:longClickable="false"
+                android:popupBackground="@drawable/btn_secondary"
+                android:drawableEnd="@android:drawable/arrow_down_float"
+                android:drawablePadding="8dp"/>
+
+            <TextView
+                style="@style/TextLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_github_token_label"
+                android:paddingTop="20dp"
+                android:paddingBottom="4dp"/>
+
+            <TextView
+                style="@style/TextHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_github_token_hint"
+                android:paddingBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/github_token"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/settings_github_token_placeholder"
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:background="@drawable/btn_secondary"
+                android:padding="12dp"
+                android:inputType="textPassword"/>
+
+            <TextView
+                android:id="@+id/github_token_remove"
+                style="@style/TextLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_github_token_remove"
+                android:textColor="@color/danger_link"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/save_btn"
+                style="@style/Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/settings_save_credentials"/>
+        </LinearLayout>
+
+    </LinearLayout>
+    </ScrollView>
+</LinearLayout>

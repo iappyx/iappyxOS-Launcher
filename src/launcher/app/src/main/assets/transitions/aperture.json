@@ -1,0 +1,10 @@
+{
+  "page": {
+    "translationX": "0",
+    "scaleX":       "max(0, 1 - abs(p))",
+    "scaleY":       "max(0, 1 - abs(p))",
+    "alpha":        "max(0, 1 - abs(p))",
+    "pivotX":       "w / 2",
+    "pivotY":       "h / 2"
+  }
+}

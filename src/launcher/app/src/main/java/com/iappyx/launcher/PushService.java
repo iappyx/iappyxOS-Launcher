@@ -1,0 +1,134 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2026 iappyx
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package com.iappyx.launcher;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.os.Build;
+import android.util.Log;
+
+import androidx.core.app.NotificationCompat;
+
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+
+/**
+ * Handles incoming FCM push notifications.
+ * Foreground: passes to PushBridge JS callback.
+ * Background: shows Android notification, opens app on tap.
+ */
+public class PushService extends FirebaseMessagingService {
+    private static final String TAG = "iappyxOS";
+    private static final String CH = "iappyx_push";
+
+    // Static callback for foreground messages (set by PushBridge)
+    static volatile String foregroundCallbackFn;
+    static volatile WidgetHost activeActivity;
+
+    @Override
+    public void onMessageReceived(RemoteMessage msg) {
+        Log.i(TAG, "Push received: " + msg.getMessageId());
+
+        String title = "";
+        String body = "";
+        if (msg.getNotification() != null) {
+            title = msg.getNotification().getTitle() != null ? msg.getNotification().getTitle() : "";
+            body = msg.getNotification().getBody() != null ? msg.getNotification().getBody() : "";
+        }
+
+        // Build data JSON
+        StringBuilder dataJson = new StringBuilder("{");
+        boolean first = true;
+        for (java.util.Map.Entry<String, String> e : msg.getData().entrySet()) {
+            if (!first) dataJson.append(",");
+            dataJson.append("\"").append(WidgetHost.escapeJson(e.getKey())).append("\":\"")
+                .append(WidgetHost.escapeJson(e.getValue())).append("\"");
+            first = false;
+        }
+        dataJson.append("}");
+
+        // If app is in foreground and callback is set, deliver to JS
+        WidgetHost activity = activeActivity;
+        String fn = foregroundCallbackFn;
+        if (activity != null && fn != null) {
+            String json = "{\"title\":\"" + WidgetHost.escapeJson(title) +
+                "\",\"body\":\"" + WidgetHost.escapeJson(body) +
+                "\",\"data\":" + dataJson + "}";
+            activity.fireEvent(fn, json);
+        } else {
+            // Background — show notification
+            showNotification(title.isEmpty() ? "New message" : title, body, dataJson.toString());
+        }
+        // PLUGINS: BEGIN — route push to any plugin with the `push`
+        // capability subscribed to the matching topic. Independent of
+        // the foreground/background widget-callback path above: a
+        // plugin gets the push whether the launcher is foregrounded
+        // or not.
+        try {
+            com.iappyx.launcher.plugins.PluginPushRouter.dispatch(
+                getApplicationContext(), title, body, dataJson.toString());
+        } catch (Throwable ignored) { /* push routing must not block FCM delivery */ }
+        // PLUGINS: END
+    }
+
+    @Override
+    public void onNewToken(String token) {
+        Log.i(TAG, "FCM token refreshed");
+        WidgetHost activity = activeActivity;
+        String fn = tokenRefreshFn;
+        if (activity != null && fn != null) {
+            activity.fireEvent(fn, "{\"token\":\"" + WidgetHost.escapeJson(token) + "\"}");
+        }
+    }
+
+    static volatile String tokenRefreshFn;
+
+    private void showNotification(String title, String body, String dataJson) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel ch = new NotificationChannel(CH, "Push Notifications", NotificationManager.IMPORTANCE_HIGH);
+            getSystemService(NotificationManager.class).createNotificationChannel(ch);
+        }
+
+        Intent intent = new Intent(this, LauncherActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra("push_data", dataJson);
+        intent.putExtra("push_title", title);
+        intent.putExtra("push_body", body);
+        PendingIntent pi = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder nb = new NotificationCompat.Builder(this, CH)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setContentIntent(pi)
+            .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (nm != null) nm.notify((int) System.currentTimeMillis(), nb.build());
+    }
+}

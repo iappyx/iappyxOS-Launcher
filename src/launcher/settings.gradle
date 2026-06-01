@@ -1,0 +1,20 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "iappyxOS-Launcher"
+include ':app'
+// `app` is a child of this Gradle project. The Gradle wrapper itself lives
+// at src/launcher/gradlew (mirrors the sibling iappyxOS repo's layout —
+// see src/shell_apk/ there). Build via the repo-root build.sh or
+// `cd src/launcher && ./gradlew :app:…`.

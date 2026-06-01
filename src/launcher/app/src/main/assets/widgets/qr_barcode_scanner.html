@@ -1,0 +1,385 @@
+<!-- Built with iappyxOS Launcher -->
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>QR & Barcode Scanner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+*:focus{outline:none}
+button{-webkit-appearance:none;background:none;border:none;color:inherit;font:inherit;cursor:pointer}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--iappyx-font)}
+#root{position:relative;width:100%;height:100%;background:var(--iappyx-surface);color:var(--iappyx-on-surface);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+
+/* STATE 1 — IDLE */
+#idle-view{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2.5vmin,18px);padding:8%;text-align:center;width:100%}
+.qr-icon{width:clamp(48px,12vmin,80px);height:clamp(48px,12vmin,80px);flex-shrink:0}
+.idle-title{font-size:clamp(11px,3.2vmin,16px);font-weight:600;letter-spacing:.3px;color:var(--iappyx-on-surface)}
+.idle-sub{font-size:clamp(9px,2.2vmin,12px);color:var(--iappyx-neutral)}
+.btn-start{background:linear-gradient(135deg,var(--iappyx-primary),var(--iappyx-secondary));color:var(--iappyx-on-primary);border-radius:clamp(8px,2.5vmin,16px);padding:clamp(8px,2.2vmin,14px) clamp(16px,5vmin,28px);font-size:clamp(11px,3vmin,15px);font-weight:700;letter-spacing:.3px;box-shadow:0 4px 18px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s}
+.btn-start:active{transform:scale(.94);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+
+/* STATE 2 — SCANNING */
+#scan-view{position:absolute;inset:0;display:none;overflow:hidden}
+#cam-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;display:block}
+.scan-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame{position:relative;width:clamp(80px,40vmin,180px);height:clamp(80px,40vmin,180px)}
+.scan-frame::before,.scan-frame::after{content:'';position:absolute;width:22%;height:22%;border-color:var(--iappyx-primary);border-style:solid}
+.scan-frame::before{top:0;left:0;border-width:3px 0 0 3px;border-radius:3px 0 0 3px}
+.scan-frame::after{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 3px 3px 0}
+.scan-frame .corner-tr,.scan-frame .corner-bl{position:absolute;width:22%;height:22%;border-color:var(--iappyx-primary);border-style:solid}
+.scan-frame .corner-tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 3px 0 0}
+.scan-frame .corner-bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 3px 0}
+.scan-line{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,var(--iappyx-primary),var(--iappyx-secondary),var(--iappyx-primary),transparent);top:5%;animation:scanAnim 1.8s linear infinite;border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,.4)}
+@keyframes scanAnim{0%{top:5%}100%{top:90%}}
+.scan-status-text{margin-top:clamp(8px,2vmin,14px);font-size:clamp(10px,2.8vmin,13px);color:var(--iappyx-primary);font-weight:500;letter-spacing:.5px;text-shadow:0 1px 4px rgba(0,0,0,.7)}
+.btn-stop{position:absolute;top:clamp(6px,1.8vmin,12px);right:clamp(6px,1.8vmin,12px);background:rgba(200,40,40,.75);color:#fff;border-radius:clamp(6px,1.8vmin,10px);padding:clamp(5px,1.5vmin,9px) clamp(9px,2.5vmin,14px);font-size:clamp(10px,2.6vmin,13px);font-weight:700;pointer-events:all;backdrop-filter:blur(4px);transition:background .15s}
+.btn-stop:active{background:rgba(180,20,20,.9)}
+.countdown-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);padding:clamp(4px,1.2vmin,8px) clamp(10px,3vmin,16px);display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none}
+.countdown-text{font-size:clamp(9px,2.4vmin,12px);color:var(--iappyx-neutral)}
+.countdown-num{font-size:clamp(10px,2.6vmin,13px);font-weight:700;color:var(--iappyx-primary);min-width:2ch;text-align:center}
+
+/* STATE 3 — RESULT */
+#result-view{display:none;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2.2vmin,16px);padding:8%;width:100%;text-align:center}
+.result-label{font-size:clamp(9px,2.3vmin,12px);color:var(--iappyx-neutral);text-transform:uppercase;letter-spacing:1px}
+.result-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:clamp(8px,2vmin,14px);padding:clamp(8px,2.2vmin,14px);font-size:clamp(10px,2.8vmin,13px);color:var(--iappyx-on-surface);word-break:break-all;width:100%;max-height:clamp(60px,18vmin,110px);overflow-y:auto;text-align:left;line-height:1.5}
+.result-box::-webkit-scrollbar{width:3px}
+.result-box::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
+.result-actions{display:flex;gap:clamp(6px,1.8vmin,12px);width:100%}
+.btn-action{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:clamp(8px,2vmin,12px);padding:clamp(7px,2vmin,12px) 4px;font-size:clamp(10px,2.6vmin,13px);font-weight:600;color:var(--iappyx-on-surface);transition:background .15s,transform .1s}
+.btn-action:active{background:rgba(255,255,255,.2);transform:scale(.95)}
+.btn-again{background:linear-gradient(135deg,var(--iappyx-primary),var(--iappyx-secondary));color:var(--iappyx-on-primary);border:none;border-radius:clamp(8px,2vmin,12px);padding:clamp(7px,2vmin,12px) clamp(16px,5vmin,24px);font-size:clamp(10px,2.8vmin,14px);font-weight:700;transition:transform .12s,box-shadow .12s;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+.btn-again:active{transform:scale(.94)}
+
+/* ERROR STATE */
+#error-view{display:none;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2.2vmin,14px);padding:8%;text-align:center;width:100%}
+.error-icon{font-size:clamp(24px,7vmin,40px)}
+.error-msg{font-size:clamp(10px,2.8vmin,13px);color:var(--iappyx-negative);line-height:1.5}
+.btn-retry{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:clamp(8px,2vmin,12px);padding:clamp(7px,2vmin,11px) clamp(14px,4vmin,22px);font-size:clamp(10px,2.8vmin,13px);font-weight:600;color:var(--iappyx-on-surface);transition:background .15s}
+.btn-retry:active{background:rgba(255,255,255,.22)}
+</style>
+</head><body>
+<div id="root">
+
+  <!-- IDLE -->
+  <div id="idle-view">
+    <svg class="qr-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="14" height="14" rx="2" stroke="#4f8ef7" stroke-width="2.2" fill="none"/>
+      <rect x="6" y="6" width="6" height="6" rx="1" fill="#4f8ef7"/>
+      <rect x="24" y="2" width="14" height="14" rx="2" stroke="#a78bfa" stroke-width="2.2" fill="none"/>
+      <rect x="28" y="6" width="6" height="6" rx="1" fill="#a78bfa"/>
+      <rect x="2" y="24" width="14" height="14" rx="2" stroke="#4f8ef7" stroke-width="2.2" fill="none"/>
+      <rect x="6" y="28" width="6" height="6" rx="1" fill="#4f8ef7"/>
+      <rect x="24" y="24" width="3" height="3" rx=".5" fill="#a78bfa"/>
+      <rect x="29" y="24" width="3" height="3" rx=".5" fill="#4f8ef7"/>
+      <rect x="34" y="24" width="3" height="3" rx=".5" fill="#a78bfa"/>
+      <rect x="24" y="29" width="3" height="3" rx=".5" fill="#4f8ef7"/>
+      <rect x="29" y="29" width="3" height="3" rx=".5" fill="#a78bfa"/>
+      <rect x="24" y="34" width="3" height="3" rx=".5" fill="#a78bfa"/>
+      <rect x="29" y="34" width="8" height="3" rx=".5" fill="#4f8ef7"/>
+      <rect x="34" y="29" width="3" height="3" rx=".5" fill="#a78bfa"/>
+    </svg>
+    <div class="idle-title">QR &amp; Barcode Scanner</div>
+    <div class="idle-sub">Point camera at any code</div>
+    <button class="btn-start" id="btn-start">▶ Start Scanner</button>
+  </div>
+
+  <!-- SCANNING -->
+  <div id="scan-view">
+    <video id="cam-video" autoplay playsinline muted></video>
+    <div class="scan-overlay">
+      <div class="scan-frame">
+        <div class="corner-tr"></div>
+        <div class="corner-bl"></div>
+        <div class="scan-line"></div>
+      </div>
+      <div class="scan-status-text" id="scan-status">Scanning…</div>
+    </div>
+    <button class="btn-stop" id="btn-stop">⏹ Stop</button>
+    <div class="countdown-bar">
+      <span class="countdown-text">Auto-stop in:</span>
+      <span class="countdown-num" id="countdown-num">60</span>
+      <span class="countdown-text">s</span>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-view">
+    <div class="result-label">Scanned Result</div>
+    <div class="result-box" id="result-text"></div>
+    <div class="result-actions">
+      <button class="btn-action" id="btn-copy">📋 Copy</button>
+      <button class="btn-action" id="btn-google">🔍 Google</button>
+    </div>
+    <button class="btn-again" id="btn-again">🔄 Scan Again</button>
+  </div>
+
+  <!-- ERROR -->
+  <div id="error-view">
+    <div class="error-icon">📷</div>
+    <div class="error-msg" id="error-msg">Camera permission denied. Please allow camera access.</div>
+    <button class="btn-retry" id="btn-retry">Try Again</button>
+  </div>
+
+</div>
+
+<canvas id="decode-canvas" style="display:none"></canvas>
+
+<script>
+(function(){
+  var STATE = 'idle';
+  var stream = null;
+  var countdownTimer = null;
+  var scanTimer = null;
+  var countdownVal = 60;
+  var lastResult = '';
+  var barcodeDetector = null;
+  var jsQRLoaded = false;
+  var jsQRFn = null;
+  var decoding = false;
+
+  var idleView = document.getElementById('idle-view');
+  var scanView = document.getElementById('scan-view');
+  var resultView = document.getElementById('result-view');
+  var errorView = document.getElementById('error-view');
+  var video = document.getElementById('cam-video');
+  var canvas = document.getElementById('decode-canvas');
+  var ctx = canvas.getContext('2d');
+  var countdownEl = document.getElementById('countdown-num');
+  var resultTextEl = document.getElementById('result-text');
+  var errorMsgEl = document.getElementById('error-msg');
+  var statusEl = document.getElementById('scan-status');
+
+  // hide video until stream ready
+  video.style.visibility = 'hidden';
+
+  function showOnly(view) {
+    idleView.style.display = 'none';
+    scanView.style.display = 'none';
+    resultView.style.display = 'none';
+    errorView.style.display = 'none';
+    if (view === 'idle') idleView.style.display = 'flex';
+    if (view === 'scan') scanView.style.display = 'block';
+    if (view === 'result') { resultView.style.display = 'flex'; }
+    if (view === 'error') errorView.style.display = 'flex';
+    STATE = view;
+  }
+
+  function initDetector() {
+    if (window.BarcodeDetector) {
+      try {
+        barcodeDetector = new BarcodeDetector({
+          formats: ['qr_code','aztec','code_128','code_39','code_93','codabar',
+                    'data_matrix','ean_13','ean_8','itf','pdf417','upc_a','upc_e']
+        });
+        return;
+      } catch(e) { barcodeDetector = null; }
+    }
+    // Load jsQR
+    if (!jsQRLoaded) {
+      var cached = null;
+      try { cached = (typeof iappyx !== 'undefined') ? iappyx.storage.loadFile('jsqr_1_4_0.js') : null; } catch(e){}
+      if (cached && cached.length > 500) {
+        injectScript(cached);
+        jsQRLoaded = true;
+      } else {
+        fetch('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js')
+          .then(function(r){ if(!r.ok) throw new Error('fetch fail'); return r.text(); })
+          .then(function(code){
+            if(code.length < 100) throw new Error('too small');
+            try { if(typeof iappyx !== 'undefined') iappyx.storage.saveFile('jsqr_1_4_0.js', code); } catch(e){}
+            injectScript(code);
+            jsQRLoaded = true;
+          })
+          .catch(function(){ /* will fall back gracefully */ });
+      }
+    }
+  }
+
+  function injectScript(code) {
+    var s = document.createElement('script');
+    s.textContent = code;
+    document.head.appendChild(s);
+    if (typeof jsQR === 'function') jsQRFn = jsQR;
+    else {
+      setTimeout(function(){
+        if (typeof jsQR === 'function') jsQRFn = jsQR;
+      }, 200);
+    }
+  }
+
+  function startScanner() {
+    showOnly('scan');
+    video.style.visibility = 'hidden';
+    countdownVal = 60;
+    countdownEl.textContent = '60';
+    statusEl.textContent = 'Starting camera…';
+
+    var constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(function(s) {
+        stream = s;
+        video.srcObject = s;
+
+        video.addEventListener('loadedmetadata', function onMeta() {
+          video.removeEventListener('loadedmetadata', onMeta);
+          video.style.visibility = 'visible';
+          statusEl.textContent = 'Scanning…';
+          startCountdown();
+          startDecodeLoop();
+        });
+
+        video.addEventListener('playing', function onPlaying() {
+          video.removeEventListener('playing', onPlaying);
+          if (video.style.visibility !== 'visible') {
+            video.style.visibility = 'visible';
+            statusEl.textContent = 'Scanning…';
+            if (!countdownTimer) startCountdown();
+            if (!scanTimer) startDecodeLoop();
+          }
+        });
+
+        video.play().catch(function(){});
+      })
+      .catch(function(err) {
+        var msg = '📷 Camera access denied or unavailable.\nPlease allow camera permission and try again.';
+        if (err && err.name === 'NotFoundError') msg = '📷 No camera found on this device.';
+        showError(msg);
+      });
+  }
+
+  function startCountdown() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(function(){
+      countdownVal--;
+      countdownEl.textContent = countdownVal;
+      if (countdownVal <= 0) {
+        stopScanner();
+        showOnly('idle');
+      }
+    }, 1000);
+  }
+
+  function startDecodeLoop() {
+    if (scanTimer) clearInterval(scanTimer);
+    scanTimer = setInterval(function(){
+      if (STATE !== 'scan') { clearInterval(scanTimer); scanTimer = null; return; }
+      if (decoding) return;
+      if (!video.videoWidth || !video.videoHeight) return;
+      decoding = true;
+      decodeFrame();
+    }, 200);
+  }
+
+  function decodeFrame() {
+    var w = video.videoWidth;
+    var h = video.videoHeight;
+    if (!w || !h) { decoding = false; return; }
+    canvas.width = w;
+    canvas.height = h;
+    ctx.drawImage(video, 0, 0, w, h);
+
+    if (barcodeDetector) {
+      barcodeDetector.detect(canvas)
+        .then(function(codes) {
+          decoding = false;
+          if (codes && codes.length > 0 && codes[0].rawValue) {
+            onCodeFound(codes[0].rawValue);
+          }
+        })
+        .catch(function(){ decoding = false; });
+    } else {
+      // Try jsQR
+      var fn = jsQRFn || (typeof jsQR === 'function' ? jsQR : null);
+      if (!fn) { decoding = false; return; }
+      try {
+        var imgData = ctx.getImageData(0, 0, w, h);
+        var result = fn(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+        decoding = false;
+        if (result && result.data) {
+          onCodeFound(result.data);
+        }
+      } catch(e) { decoding = false; }
+    }
+  }
+
+  function onCodeFound(text) {
+    if (!text) return;
+    lastResult = text;
+    stopScanner();
+    showResult(text);
+  }
+
+  function stopScanner() {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+    decoding = false;
+    if (stream) {
+      stream.getTracks().forEach(function(t){ t.stop(); });
+      stream = null;
+    }
+    video.srcObject = null;
+    video.style.visibility = 'hidden';
+  }
+
+  function showResult(text) {
+    showOnly('result');
+    resultTextEl.textContent = text;
+  }
+
+  function showError(msg) {
+    stopScanner();
+    showOnly('error');
+    errorMsgEl.textContent = msg;
+  }
+
+  // Button handlers
+  document.getElementById('btn-start').addEventListener('click', function(){
+    initDetector();
+    startScanner();
+  });
+
+  document.getElementById('btn-stop').addEventListener('click', function(){
+    stopScanner();
+    showOnly('idle');
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function(){
+    var btn = document.getElementById('btn-copy');
+    // Use bridge clipboard if available, else navigator
+    if (typeof iappyx !== 'undefined' && iappyx.clipboard) {
+      try { iappyx.clipboard.write(lastResult); } catch(e){}
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lastResult).catch(function(){});
+    }
+    btn.textContent = '✅ Copied!';
+    setTimeout(function(){ btn.textContent = '📋 Copy'; }, 2000);
+  });
+
+  document.getElementById('btn-google').addEventListener('click', function(){
+    var url = 'https://www.google.com/search?q=' + encodeURIComponent(lastResult);
+    // Use intent bridge to open externally
+    if (typeof iappyx !== 'undefined' && iappyx.intent) {
+      iappyx.intent.openUrl(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  });
+
+  document.getElementById('btn-again').addEventListener('click', function(){
+    showOnly('idle');
+  });
+
+  document.getElementById('btn-retry').addEventListener('click', function(){
+    initDetector();
+    startScanner();
+  });
+
+  // Init
+  showOnly('idle');
+  initDetector();
+
+})();
+</script>
+</body></html>

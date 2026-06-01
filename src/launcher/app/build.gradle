@@ -1,0 +1,148 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.iappyx.launcher'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.iappyx.launcher"
+        minSdk 29
+        targetSdk 35
+        versionCode 8
+        versionName "0.8.0"
+        ndk { abiFilters 'arm64-v8a' }
+    }
+
+    buildTypes {
+        release {
+            // PHASE B (2026-05-15): R8 shrinking enabled with
+            // -dontoptimize -dontobfuscate (set in proguard-rules.pro).
+            // Bridge diagnostics widget is the regression check —
+            // baseline before flipping was 88 pass (84 auto + 4 manual).
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                          'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    // Android 15+ requires native libraries to be aligned to 16KB page size.
+    // Uncompressed + page-aligned packaging is the standard fix.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
+    // BuildConfig generation — off by default in AGP 8+. Enabled so the
+    // REMOTE EDIT FEATURE's /api/about endpoint can read VERSION_NAME +
+    // BUILD_TYPE at runtime.
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.gridlayout:gridlayout:1.0.0'
+    implementation 'androidx.dynamicanimation:dynamicanimation:1.0.0'
+    implementation 'androidx.palette:palette-ktx:1.0.0'
+
+    // Android Auto / Automotive OS connection state. We don't render any
+    // car-app surfaces — we only observe CarConnection.getType() so the
+    // profile system can swap to a "driving" profile when a head-unit is
+    // attached (projection or native). Same approach the iappyxOS shell
+    // uses for its trigger.auto bridge.
+    implementation 'androidx.car.app:app:1.4.0'
+
+    // Networking (for httpClient bridge + AI API calls)
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // Secure storage for API keys — hardware-backed via Android Keystore
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // Audio playback (ExoPlayer + media session for lock screen)
+    implementation 'androidx.media3:media3-exoplayer:1.3.0'
+    implementation 'androidx.media3:media3-session:1.3.0'
+
+    // Biometric auth
+    implementation 'androidx.biometric:biometric:1.1.0'
+
+    // ML Kit
+    //
+    // BARCODE + TEXT-RECOGNITION use the THIN (Play Services) variants —
+    // models download from Google Play Services on first use. Saves
+    // ~16 MB of native code vs the bundled variants. CameraBridge
+    // checks GoogleApiAvailability up-front and surfaces a clear
+    // "requires Google Play Services" error to widgets on no-GMS devices.
+    //
+    // IMAGE-LABELING + SELFIE-SEGMENTATION stay BUNDLED — no Play
+    // Services-backed thin variant exists for either; bundling is the
+    // only option if we want them to work on all devices.
+    implementation 'com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1'
+    // ZXing core for QR encoding (ML Kit only decodes; we generate QR
+    // frames in QRSendActivity to ferry an artefact bundle to a peer).
+    implementation 'com.google.zxing:core:3.5.3'
+
+    // CameraX — used by QRReceiveActivity to feed live frames into ML Kit's
+    // BarcodeScanner. Lifecycle binding keeps the camera attached only while
+    // the activity is resumed; PreviewView handles the SurfaceView wiring.
+    implementation 'androidx.camera:camera-core:1.4.1'
+    implementation 'androidx.camera:camera-camera2:1.4.1'
+    implementation 'androidx.camera:camera-lifecycle:1.4.1'
+    implementation 'androidx.camera:camera-view:1.4.1'
+    implementation 'com.google.android.gms:play-services-mlkit-text-recognition:19.0.1'
+    implementation 'com.google.mlkit:image-labeling:17.0.9'           // bundled, no thin variant
+    implementation 'com.google.mlkit:segmentation-selfie:16.0.0-beta6' // bundled, no thin variant
+
+    // SSH / SFTP
+    implementation 'com.github.mwiede:jsch:0.2.21'
+
+    // SMB (Windows shares)
+    implementation 'eu.agno3.jcifs:jcifs-ng:2.1.10'
+
+    // BLE (Nordic)
+    implementation 'no.nordicsemi.android:ble:2.11.0'
+
+    // Play Services Location (for GeofencingClient used in GeofenceBridge)
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+
+    // Lifecycle Service (TriggerKeepaliveService hosts a CarConnection observer)
+    implementation 'androidx.lifecycle:lifecycle-service:2.7.0'
+
+    // Android Auto connection observer (trigger.auto)
+    implementation 'androidx.car.app:app:1.4.0'
+
+    // EXIF (used by CameraBridge)
+    implementation 'androidx.exifinterface:exifinterface:1.3.7'
+
+    // androidx.webkit — for addDocumentStartJavaScript (inject iappyx shim
+    // before any widget <script> runs, so the first iappyx.* call works).
+    implementation 'androidx.webkit:webkit:1.11.0'
+
+    // Firebase messaging (needed to compile the PushBridge class; runtime unused — not registered)
+    implementation 'com.google.firebase:firebase-messaging:24.0.0'
+
+    // Eclipse Paho — MQTT 3.1.1 client used by PluginMqttBridge. Supports
+    // tcp://, ssl://, ws://, wss:// URI schemes. ~150 KB. Chosen over HiveMQ
+    // (~3-5 MB transitive Netty dependency) to keep the launcher APK small.
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
+}

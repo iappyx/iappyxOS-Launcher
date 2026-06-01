@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="stylesheet" href="leaflet.css">
+<script src="leaflet.js"></script>
+<style>
+  html, body, #map {
+    margin: 0; padding: 0; height: 100vh; width: 100vw;
+    background: #0d0d1a;
+  }
+  .leaflet-control-attribution {
+    font-size: 10px;
+    background: rgba(13,13,26,0.7) !important;
+    color: #aaa !important;
+  }
+  .leaflet-control-attribution a { color: #ccc !important; }
+  .leaflet-bar {
+    background: rgba(13,13,26,0.85) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+  }
+  .leaflet-bar a {
+    background: transparent !important;
+    color: #eee !important;
+    border-bottom-color: rgba(255,255,255,0.15) !important;
+  }
+  .leaflet-bar a:hover { background: rgba(255,255,255,0.08) !important; }
+  #status {
+    position: fixed; left: 12px; right: 12px; top: 12px;
+    background: rgba(13,13,26,0.85);
+    color: #fff; font-family: -apple-system, system-ui, sans-serif;
+    font-size: 13px; padding: 10px 14px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    pointer-events: none;
+    text-align: center;
+    z-index: 1000;
+    display: none;
+  }
+  #err {
+    position: fixed; left: 12px; right: 12px; top: 12px;
+    background: rgba(180,40,40,0.92);
+    color: #fff; font-family: -apple-system, system-ui, sans-serif;
+    font-size: 13px; padding: 10px 14px; border-radius: 12px;
+    z-index: 1000;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="status">Tap on the map to place the pin</div>
+<div id="err"></div>
+<script>
+  var map, marker, circle;
+  var ACCENT = '#7C5CFF';
+  var statusEl = document.getElementById('status');
+  var errBox = document.getElementById('err');
+  // Build an explicit pin icon so Leaflet doesn't try to auto-detect the
+  // image path from the script src (broken under file://).
+  var PIN_ICON = null;
+
+  // Surface init / runtime errors so we can see them on-device.
+  window.addEventListener('error', function(e) {
+    errBox.textContent = 'Map error: ' + (e.message || e.error || e);
+    errBox.style.display = 'block';
+  });
+
+  function showHint(t) {
+    statusEl.textContent = t;
+    statusEl.style.display = 'block';
+    clearTimeout(showHint._t);
+    showHint._t = setTimeout(function(){ statusEl.style.display = 'none'; }, 3500);
+  }
+
+  function ensureLeaflet() {
+    if (typeof L === 'undefined') {
+      errBox.textContent = 'Leaflet failed to load';
+      errBox.style.display = 'block';
+      return false;
+    }
+    // Build an explicit icon — Leaflet's default-icon auto-path detection
+    // is broken under file:// (it parses the leaflet.js src URL and gets
+    // the wrong base, then prepends junk to our iconUrl).
+    PIN_ICON = L.icon({
+      iconUrl: 'images/marker-icon.png',
+      iconRetinaUrl: 'images/marker-icon-2x.png',
+      shadowUrl: 'images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      tooltipAnchor: [16, -28],
+      shadowSize: [41, 41]
+    });
+    return true;
+  }
+
+  function init(lat, lng, radius, hasInitialFix) {
+    if (!ensureLeaflet()) return;
+    try {
+      // tap: false — use the WebView's native click events instead of
+      // Leaflet's tap synthesizer, which mis-locates touches on some
+      // Android WebView builds (taps land 20-40px off horizontally).
+      map = L.map('map', { zoomControl: true, attributionControl: true, tap: false })
+              .setView([lat, lng], hasInitialFix ? 15 : 5);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap',
+      }).addTo(map);
+
+      if (hasInitialFix) {
+        placePin(lat, lng, radius);
+      } else {
+        showHint('Tap on the map to place the pin');
+      }
+
+      // The map container size may not have settled by the time init()
+      // runs (LinearLayout weighting + window-insets adjustments). A
+      // mis-sized map projects taps to the wrong lat/lng. Force a
+      // recompute on the next frame and again on viewport resize.
+      requestAnimationFrame(function() { if (map) map.invalidateSize(); });
+      window.addEventListener('resize', function() { if (map) map.invalidateSize(); });
+
+      // Use 'click' for desktop AND tap-as-click on touch (Leaflet v1.7+
+      // synthesises a click after a tap). Some Android WebViews behave
+      // oddly with the 'tap' event so we listen on click for robustness.
+      map.on('click', function(e) {
+        placePin(e.latlng.lat, e.latlng.lng, currentRadius());
+        pushToNative(e.latlng.lat, e.latlng.lng);
+        showHint('Pin placed — drag to fine-tune');
+      });
+    } catch (e) {
+      errBox.textContent = 'Map init failed: ' + e.message;
+      errBox.style.display = 'block';
+    }
+  }
+
+  function placePin(lat, lng, radius) {
+    if (marker) marker.remove();
+    if (circle) circle.remove();
+    marker = L.marker([lat, lng], { draggable: true, icon: PIN_ICON }).addTo(map);
+    circle = L.circle([lat, lng], {
+      radius: radius,
+      color: ACCENT, weight: 2,
+      fillColor: ACCENT, fillOpacity: 0.2,
+    }).addTo(map);
+    marker.on('drag', function(e) {
+      var p = e.target.getLatLng();
+      circle.setLatLng(p);
+      pushToNative(p.lat, p.lng);
+    });
+  }
+
+  function currentRadius() {
+    return circle ? circle.getRadius() : 150;
+  }
+
+  function pushToNative(lat, lng) {
+    if (window.Picker && Picker.onLocationChanged) {
+      Picker.onLocationChanged(lat, lng);
+    }
+  }
+
+  // Native → JS API
+  window.iappyxInit = function(lat, lng, radius, hasInitialFix) {
+    init(lat, lng, radius, hasInitialFix);
+  };
+  window.iappyxSetRadius = function(r) {
+    if (circle) circle.setRadius(r);
+  };
+  window.iappyxSetLocation = function(lat, lng, recenter) {
+    if (!map) return;
+    placePin(lat, lng, currentRadius());
+    if (recenter) map.setView([lat, lng], Math.max(map.getZoom(), 15));
+    pushToNative(lat, lng);
+  };
+</script>
+</body>
+</html>

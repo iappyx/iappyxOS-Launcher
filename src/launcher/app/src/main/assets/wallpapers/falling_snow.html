@@ -1,0 +1,265 @@
+<!-- Built with iappyxOS Launcher -->
+<!doctype html><html><head><title>Falling Snow</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0a2e;overflow:hidden;">
+<canvas id="c" style="position:fixed;inset:0;width:100vw;height:100vh;display:block;"></canvas>
+<script>
+(function(){
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+
+  let W, H;
+  let heightMap = [];
+  let snowflakes = [];
+  let time = 0;
+  let visible = true;
+  let flashAlpha = 0;
+  let lastAx = 0, lastAy = 0, lastAz = 0;
+  let pageOffset = 0;
+
+  function fit() {
+    W = canvas.width = innerWidth;
+    H = canvas.height = innerHeight;
+    initHeightMap();
+    initSnowflakes();
+  }
+
+  function initHeightMap() {
+    const cols = Math.ceil(W);
+    heightMap = new Array(cols).fill(0);
+  }
+
+  function initSnowflakes() {
+    snowflakes = [];
+    for (let i = 0; i < 200; i++) {
+      snowflakes.push(createSnowflake(true));
+    }
+  }
+
+  function createSnowflake(randomY) {
+    const radius = 1.5 + Math.random() * 3.5;
+    const x = Math.random() * W;
+    const y = randomY ? Math.random() * H : -radius * 2;
+    return {
+      x: x,
+      y: y,
+      radius: radius,
+      speed: 0.6 + Math.random() * 2.2,
+      wobbleFactor: 0.01 + Math.random() * 0.03,
+      wobbleAmplitude: 0.4 + Math.random() * 1.2,
+      wobbleOffset: Math.random() * Math.PI * 2,
+      opacity: 0.6 + Math.random() * 0.4
+    };
+  }
+
+  function resetPile() {
+    for (let i = 0; i < heightMap.length; i++) {
+      heightMap[i] = 0;
+    }
+    flashAlpha = 1.0;
+  }
+
+  function detectShake(ax, ay, az) {
+    const dx = ax - lastAx;
+    const dy = ay - lastAy;
+    const dz = az - lastAz;
+    const magnitude = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    lastAx = ax; lastAy = ay; lastAz = az;
+    if (magnitude > 25) {
+      resetPile();
+    }
+  }
+
+  if (window.iappyx) {
+    iappyx.onVisibility = function(v) { visible = !!v; };
+    iappyx.onPageOffset = function(x) { pageOffset = x; };
+    iappyx.onAccelerometer = function(ax, ay, az) {
+      detectShake(ax, ay, az);
+    };
+    iappyx.enableAccelerometer(true);
+  }
+
+  window.addEventListener('resize', fit);
+  fit();
+
+  function drawBackground() {
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    const shift = pageOffset * 0.15;
+    grad.addColorStop(0, `hsl(${235 + shift * 30}, 70%, 8%)`);
+    grad.addColorStop(0.5, `hsl(${230 + shift * 20}, 65%, 11%)`);
+    grad.addColorStop(1, `hsl(${220 + shift * 10}, 60%, 7%)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawStars() {
+    ctx.save();
+    // static seed-based stars
+    const starCount = 80;
+    for (let i = 0; i < starCount; i++) {
+      // pseudo-random but stable each frame
+      const sx = ((i * 137.508 + 50) % W);
+      const sy = ((i * 97.3 + 30) % (H * 0.65));
+      const sr = 0.4 + (i % 5) * 0.18;
+      const twinkle = 0.3 + 0.4 * Math.abs(Math.sin(time * 0.008 + i * 0.7));
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,220,255,${twinkle})`;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function depositSnow(sf) {
+    const x = Math.round(sf.x);
+    const spreadRadius = Math.ceil(sf.radius * 1.5);
+    for (let dx = -spreadRadius; dx <= spreadRadius; dx++) {
+      const xi = x + dx;
+      if (xi < 0 || xi >= heightMap.length) continue;
+      const dist = Math.abs(dx) / spreadRadius;
+      const contribution = sf.radius * (1 - dist * 0.7) * 0.18;
+      heightMap[xi] = Math.min(H * 0.55, heightMap[xi] + contribution);
+    }
+  }
+
+  function smoothHeightMap() {
+    // gentle smoothing each frame
+    const hm = heightMap;
+    const len = hm.length;
+    for (let i = 1; i < len - 1; i++) {
+      hm[i] = hm[i] * 0.96 + (hm[i-1] + hm[i+1]) * 0.02;
+    }
+  }
+
+  function drawSnowPile() {
+    const hm = heightMap;
+    const len = hm.length;
+    if (len === 0) return;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+
+    for (let i = 0; i < len; i++) {
+      const py = H - hm[i];
+      if (i === 0) {
+        ctx.lineTo(0, py);
+      } else {
+        ctx.lineTo(i, py);
+      }
+    }
+
+    ctx.lineTo(W, H);
+    ctx.closePath();
+
+    const pileGrad = ctx.createLinearGradient(0, H - 60, 0, H);
+    pileGrad.addColorStop(0, 'rgba(220,235,255,0.95)');
+    pileGrad.addColorStop(0.4, 'rgba(200,220,250,0.92)');
+    pileGrad.addColorStop(1, 'rgba(180,210,245,0.98)');
+    ctx.fillStyle = pileGrad;
+    ctx.fill();
+
+    // subtle top highlight
+    ctx.beginPath();
+    ctx.moveTo(0, H - hm[0]);
+    for (let i = 1; i < len; i++) {
+      ctx.lineTo(i, H - hm[i]);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function updateAndDrawSnowflakes() {
+    ctx.save();
+    for (let i = 0; i < snowflakes.length; i++) {
+      const sf = snowflakes[i];
+      sf.y += sf.speed;
+      sf.x += Math.sin(time * sf.wobbleFactor + sf.wobbleOffset) * sf.wobbleAmplitude;
+
+      // wrap horizontally
+      if (sf.x < -sf.radius) sf.x = W + sf.radius;
+      if (sf.x > W + sf.radius) sf.x = -sf.radius;
+
+      // check if near the snow pile top
+      const xi = Math.max(0, Math.min(heightMap.length - 1, Math.round(sf.x)));
+      const pileTop = H - heightMap[xi];
+
+      if (sf.y + sf.radius >= pileTop) {
+        depositSnow(sf);
+        // reset snowflake to top
+        const reset = createSnowflake(false);
+        snowflakes[i] = reset;
+        continue;
+      }
+
+      if (sf.y - sf.radius > H) {
+        depositSnow(sf);
+        const reset = createSnowflake(false);
+        snowflakes[i] = reset;
+        continue;
+      }
+
+      // draw snowflake
+      ctx.beginPath();
+      ctx.arc(sf.x, sf.y, sf.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(220,235,255,${sf.opacity})`;
+      ctx.fill();
+
+      // soft glow for larger flakes
+      if (sf.radius > 3) {
+        ctx.beginPath();
+        ctx.arc(sf.x, sf.y, sf.radius * 1.8, 0, Math.PI * 2);
+        const glow = ctx.createRadialGradient(sf.x, sf.y, sf.radius * 0.3, sf.x, sf.y, sf.radius * 1.8);
+        glow.addColorStop(0, `rgba(200,225,255,${sf.opacity * 0.25})`);
+        glow.addColorStop(1, 'rgba(200,225,255,0)');
+        ctx.fillStyle = glow;
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawFlash() {
+    if (flashAlpha <= 0) return;
+    ctx.save();
+    ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    flashAlpha = Math.max(0, flashAlpha - 0.06);
+  }
+
+  function drawOverlayVignette() {
+    ctx.save();
+    const vig = ctx.createRadialGradient(W/2, H/2, H * 0.2, W/2, H/2, H * 0.85);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, 'rgba(0,0,10,0.45)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  let lastTime = 0;
+  function tick(ts) {
+    requestAnimationFrame(tick);
+
+    if (!visible) return;
+
+    const dt = Math.min(ts - lastTime, 100);
+    lastTime = ts;
+    time += dt * 0.05;
+
+    drawBackground();
+    drawStars();
+    smoothHeightMap();
+    updateAndDrawSnowflakes();
+    drawSnowPile();
+    drawOverlayVignette();
+    drawFlash();
+  }
+
+  requestAnimationFrame(tick);
+})();
+</script>
+</body></html>

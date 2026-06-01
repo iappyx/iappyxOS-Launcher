@@ -1,0 +1,8 @@
+{
+  "slug": "tinted_mono",
+  "name": "Tinted mono",
+  "subtitle": "Each icon recoloured with its own dominant colour",
+  "bake": [
+    { "op": "tinted_mono" }
+  ]
+}

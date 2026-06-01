@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Plan A Phase 5 — shared toolbar for every settings detail screen.
+  Use via <include layout="@layout/settings_toolbar"/> at the top of the
+  activity's root LinearLayout, then call
+  setSupportActionBar(findViewById(R.id.settings_toolbar)) +
+  setDisplayHomeAsUpEnabled(true) in onCreate.
+
+  Single source of truth for back arrow, title position, height, colors.
+-->
+<androidx.appcompat.widget.Toolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/settings_toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="@color/bg_home"
+    app:contentInsetStartWithNavigation="0dp"
+    app:titleTextColor="@color/text_primary"
+    app:titleTextAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title.Iappyx"
+    app:navigationIcon="@drawable/ic_arrow_back"
+    app:navigationContentDescription="@string/action_back" />

@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Full-bleed backdrop shown on the AI command page (pager position 0).
+         Covers behind the pager, dock, and system bars so the command page
+         reads as an opaque sheet instead of wallpaper-through-everything.
+         Alpha cross-fades with the horizontal swipe (see applyChromeFactor). -->
+    <View
+        android:id="@+id/command_backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_home"
+        android:alpha="0" />
+
+    <!-- Pager spans full height. Home pages wrap their HomeGrid with a 118dp
+         bottom-padded container so grid cells stay above the dock; the command
+         page (pager position 0) uses the full height edge-to-edge. -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Indicator + settings strip: page dots + AI pill centred on screen,
+         settings gear pinned right, profile chip pinned left. 48dp tall
+         (Material minimum touch target). Vertically centred in the gap
+         between the bottom row of widget/icon content and the dock —
+         dock top at 110dp from screen bottom, content bottom at ~230dp
+         from screen bottom, so gap centre ≈ 170dp. With 48dp strip height,
+         marginBottom = 170 - 24 = ~146dp; rounded to 150dp. -->
+    <FrameLayout
+        android:id="@+id/home_chrome_strip"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="150dp">
+
+        <!-- Side margins reserve room on the right for the gear (and a
+             matching mirror on the left so the dots remain centred on the
+             screen rather than the available width). -->
+        <com.iappyx.launcher.widget.WormIndicator
+            android:id="@+id/home_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginStart="64dp"
+            android:layout_marginEnd="64dp" />
+
+        <!-- Settings gear, vertically centred on the dots. 48×48dp Material
+             touch target; 12dp inset padding leaves a 24dp glyph. -->
+        <ImageView
+            android:id="@+id/home_settings_btn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="12dp"
+            android:padding="12dp"
+            android:src="@drawable/ic_settings"
+            android:tint="#DDFFFFFF"
+            android:alpha="0.75"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/home_settings_cd"
+            android:scaleType="fitCenter" />
+
+        <!-- Quick-switch profile chip — mirrors the gear on the left.
+             Hidden when no profiles exist (set in LauncherActivity). -->
+        <ImageView
+            android:id="@+id/home_profile_btn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="12dp"
+            android:padding="12dp"
+            android:src="@drawable/ic_swap_horiz"
+            android:tint="#DDFFFFFF"
+            android:alpha="0.75"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/home_switch_profile_cd"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Dock pager: swipeable row of quick-launch icons, wrapped in a frosted
+         "tray" so it reads as one floating capsule, not loose icons. -->
+    <FrameLayout
+        android:id="@+id/dock_bar"
+        android:layout_width="match_parent"
+        android:layout_height="94dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="16dp"
+        android:padding="3dp"
+        android:background="@drawable/dock_bar_bg">
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/dock_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Dock page indicator — same worm-dot style as the home pager.
+             Lives INSIDE the dock frame, anchored top-centred with a small
+             gap from the dock's rounded top edge. Auto-hides itself when
+             pageCount <= 1 (see WormIndicator.onDraw); refreshDockIndicator
+             also flips visibility so it doesn't take vertical space. -->
+        <com.iappyx.launcher.widget.WormIndicator
+            android:id="@+id/dock_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="12dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="6dp" />
+    </FrameLayout>
+
+    <View
+        android:id="@+id/edit_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000"
+        android:alpha="0"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <!-- Full-height drawer overlay. Hidden until a swipe-up gesture. Lives
+         inside LauncherActivity so long-press → startDragAndDrop can drop
+         onto the home grid in this same window. -->
+    <com.iappyx.launcher.widget.AppDrawerPanel
+        android:id="@+id/app_drawer_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Universal search overlay. Hidden until a swipe-DOWN gesture on the
+         home page (mid-screen — top-edge swipes still reach notifications). -->
+    <com.iappyx.launcher.widget.SearchPanel
+        android:id="@+id/search_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Pinch-to-overview: thumbnail grid of all home pages.  -->
+    <com.iappyx.launcher.widget.OverviewPanel
+        android:id="@+id/overview_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- First-run gesture hint. Auto-shown on the very first launch; dismisses
+         on any swipe. Persisted flag in LauncherPrefs so it never returns. -->
+    <LinearLayout
+        android:id="@+id/first_run_hero"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+        <TextView
+            style="@style/TextTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/first_run_welcome_title"
+            android:textSize="36sp"
+            android:paddingBottom="16dp"/>
+        <TextView
+            android:id="@+id/first_run_hint"
+            style="@style/TextLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/first_run_hint"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:lineSpacingExtra="8dp"/>
+        <TextView
+            android:id="@+id/first_run_dismiss"
+            style="@style/TextHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/first_run_dismiss"
+            android:paddingTop="36dp"/>
+    </LinearLayout>
+
+    <!-- Edit-mode top bar — Material You-styled. Frosted bg_home with rounded
+         bottom corners + tonal pill buttons. Filled accent "Done" stands out
+         as the primary exit affordance. -->
+    <LinearLayout
+        android:id="@+id/edit_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="64dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:background="@drawable/edit_bar_bg"
+        android:elevation="6dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/edit_bar_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/edit_bar_title"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="end"/>
+
+        <!-- Settings (tonal pill, glyph-only) -->
+        <ImageView
+            android:id="@+id/edit_bar_settings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="9dp"
+            android:src="@drawable/ic_settings"
+            android:tint="@color/accent"
+            android:scaleType="fitCenter"
+            android:background="@drawable/edit_bar_chip_secondary"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/home_settings_cd" />
+
+        <Space android:layout_width="8dp" android:layout_height="match_parent"/>
+
+        <!-- All pages (tonal pill — opens the overview screen) -->
+        <ImageView
+            android:id="@+id/edit_bar_overview"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_grid_view"
+            app:tint="@color/accent"
+            android:contentDescription="@string/home_all_pages_cd"
+            android:background="@drawable/edit_bar_chip_secondary"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <Space android:layout_width="8dp" android:layout_height="match_parent"/>
+
+        <!-- Edit (tonal pill, only visible when an editable widget is selected) -->
+        <TextView
+            android:id="@+id/edit_bar_add"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="@string/edit_bar_action_edit"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/accent"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:background="@drawable/edit_bar_chip_secondary"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"/>
+
+        <Space android:layout_width="8dp" android:layout_height="match_parent"/>
+
+        <!-- Remove (danger pill, only visible when something is selected) -->
+        <TextView
+            android:id="@+id/edit_bar_remove"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="@string/edit_bar_action_remove"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFB0B0"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:background="@drawable/edit_bar_chip_danger"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"/>
+
+        <Space android:layout_width="8dp" android:layout_height="match_parent"/>
+
+        <!-- Done (filled accent pill — primary exit) -->
+        <TextView
+            android:id="@+id/edit_bar_done"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="@string/edit_bar_action_done"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#0D0D1A"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:background="@drawable/edit_bar_chip_primary"
+            android:clickable="true"
+            android:focusable="true"/>
+    </LinearLayout>
+
+</FrameLayout>

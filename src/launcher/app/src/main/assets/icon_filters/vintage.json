@@ -1,0 +1,17 @@
+{
+  "slug": "vintage",
+  "name": "Vintage",
+  "subtitle": "Faded saturation with a warm shift — old polaroid feel",
+  "bake": [
+    { "op": "set_saturation", "value": 0.5 },
+    {
+      "op": "color_matrix",
+      "values": [
+        1.0, 0.0, 0.0, 0.0,  14.0,
+        0.0, 1.0, 0.0, 0.0,   6.0,
+        0.0, 0.0, 1.0, 0.0, -10.0,
+        0.0, 0.0, 0.0, 1.0,   0.0
+      ]
+    }
+  ]
+}
