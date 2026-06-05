@@ -533,6 +533,13 @@ class LauncherActivity : AppCompatActivity() {
         pager.setCurrentItem(1, false)
         // Initial chrome state for the home page (dock + gear visible).
         applyDockAndGearAlpha(1f)
+        // Subscribe to display-state changes so screen-off pauses widget
+        // sensors / RAF / JS timers. Activity.onPause does NOT fire on
+        // screen-off when the launcher is the home app (the activity stays
+        // resumed while the display dozes), so without this hook a compass
+        // or sensor-driven widget keeps sampling for the entire screen-off
+        // window. Detached in onDestroy.
+        widgetLifecycle.attach()
         pager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 refreshHomeIndicator()
@@ -2482,6 +2489,7 @@ class LauncherActivity : AppCompatActivity() {
         // current page in onResume; off-screen pages stay paused until
         // their page is selected (handled in pager.onPageSelected).
         pauseAllRealizedWidgets()
+        widgetLifecycle.onActivityPaused()
         // Tear down the voice recognizer + overlay if they're live. Without
         // this, leaving the activity mid-recognition leaves a full-screen
         // clickable overlay attached, so when we resume swipes never reach
@@ -2500,6 +2508,7 @@ class LauncherActivity : AppCompatActivity() {
      *  WebView and pin Activity-shaped state until process death. */
     override fun onDestroy() {
         if (runningInstance === this) runningInstance = null
+        widgetLifecycle.detach()
         voiceController.destroy()
         profileBridge.stop()
         clippingsRefreshBridge.stop()
@@ -2749,6 +2758,7 @@ class LauncherActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         runningInstance = this
+        widgetLifecycle.onActivityResumed()
         // Theme editor changed the overrides → live-push to visible widgets +
         // force the persistent home content (grid/dock/drawer labels, edit bar)
         // to re-apply the native theme now. Those views were bound before the

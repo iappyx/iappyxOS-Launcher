@@ -3220,8 +3220,13 @@ public class WidgetHost extends android.content.ContextWrapper {
         @JavascriptInterface
         public void watchPositionWithError(final String callbackFn, final String errorCallbackFn) {
             if (!isSafeCallbackName(callbackFn)) return;
-            // Stop foreground tracking service to avoid double GPS drain
-            stopTracking();
+            // Stop foreground tracking service to avoid double GPS drain — but ONLY
+            // if this widget actually started it. An unconditional stopTracking()
+            // calls startService(ACTION_STOP), which CREATES the LocationService
+            // just to tell it to stop. Since onStartCommand intentionally doesn't
+            // stopSelf() on ACTION_STOP ("keep alive for quick restart"), every
+            // watchPosition call would leave a zombie Service alive for hours.
+            if (locationServiceStartedByMe) stopTracking();
             watchPositionErrorFn = errorCallbackFn;
             if (ContextCompat.checkSelfPermission(WidgetHost.this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -3778,14 +3783,19 @@ public class WidgetHost extends android.content.ContextWrapper {
                 Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
                 if (sensor == null) {
                     // Fallback to magnetic field + accelerometer combo
-                    sensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-                    if (sensor == null) { fireEvent(callbackFn, "{\"error\":\"compass not available\"}"); return; }
+                    if (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) == null) {
+                        fireEvent(callbackFn, "{\"error\":\"compass not available\"}"); return;
+                    }
                     startCompassFallback(callbackFn);
                     return;
                 }
-                // Use sensor type 100 as our slot for compass (won't collide with real type IDs)
-                int COMPASS_SLOT = 100;
-                stopSensor(COMPASS_SLOT);
+                // Store under TYPE_ROTATION_VECTOR so pauseBridges/resumeBridges
+                // can find this listener via getDefaultSensor(type) — earlier
+                // versions used a synthetic slot ID (100) which broke the
+                // resume path: getDefaultSensor(100) returns null and the
+                // re-register silently skipped, leaving the compass frozen
+                // after every page-switch / background cycle.
+                stopSensor(Sensor.TYPE_ROTATION_VECTOR);
                 final float[] rotMatrix = new float[9];
                 final float[] orientation = new float[3];
                 SensorEventListener listener = new SensorEventListener() {
@@ -3802,16 +3812,18 @@ public class WidgetHost extends android.content.ContextWrapper {
                     }
                     @Override public void onAccuracyChanged(Sensor s, int a) {}
                 };
-                activeSensors.put(COMPASS_SLOT, listener);
-                sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI);
-                usage.onSensorStart(COMPASS_SLOT);  // USAGE
+                registerSensorListener(Sensor.TYPE_ROTATION_VECTOR, sensor, listener, SensorManager.SENSOR_DELAY_UI);
             });
         }
 
         private void startCompassFallback(String callbackFn) {
-            // Fallback: combine accelerometer + magnetometer for heading
-            int COMPASS_SLOT = 100;
-            stopSensor(COMPASS_SLOT);
+            // Fallback: combine accelerometer + magnetometer for heading.
+            // Register the SAME listener under BOTH type entries so
+            // pauseBridges unregisters it (idempotent — unregisterListener
+            // strips the listener from every sensor) and resumeBridges
+            // re-registers it against both real sensors via their TYPE_* keys.
+            stopSensor(Sensor.TYPE_ACCELEROMETER);
+            stopSensor(Sensor.TYPE_MAGNETIC_FIELD);
             final float[] gravity = new float[3];
             final float[] geomagnetic = new float[3];
             final float[] rotMatrix = new float[9];
@@ -3842,12 +3854,10 @@ public class WidgetHost extends android.content.ContextWrapper {
                 }
                 @Override public void onAccuracyChanged(Sensor s, int a) {}
             };
-            activeSensors.put(COMPASS_SLOT, listener);
             Sensor accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             Sensor mag = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-            if (accel != null) sensorManager.registerListener(listener, accel, SensorManager.SENSOR_DELAY_UI);
-            if (mag != null) sensorManager.registerListener(listener, mag, SensorManager.SENSOR_DELAY_UI);
-            usage.onSensorStart(COMPASS_SLOT);  // USAGE
+            registerSensorListener(Sensor.TYPE_ACCELEROMETER, accel, listener, SensorManager.SENSOR_DELAY_UI);
+            registerSensorListener(Sensor.TYPE_MAGNETIC_FIELD, mag, listener, SensorManager.SENSOR_DELAY_UI);
         }
 
         @JavascriptInterface public void stop() { runOnUiThread(() -> stopSensors()); }

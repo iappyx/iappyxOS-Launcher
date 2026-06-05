@@ -3,6 +3,9 @@
  */
 package com.iappyx.launcher
 
+import android.content.Context
+import android.hardware.display.DisplayManager
+import android.view.Display
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -22,6 +25,17 @@ import com.iappyx.launcher.cells.GeneratedWidgetCell
  * current. Caller provides the saver state via [isSaverOn] (so this
  * class doesn't reach for the singleton bridge directly).
  *
+ * **Screen-off pause.** Activity `onPause` does NOT fire on screen-off
+ * when the launcher is the user's home app — the activity stays in the
+ * resumed state while the display dozes (especially with Daydream or
+ * no lock screen). Without an explicit display-state hook, widget
+ * sensors stay registered for the entire screen-off window — measured
+ * 17h of continuous rotation-vector sampling against 1h of screen-on
+ * time on a real tablet. The [DisplayManager.DisplayListener] hooked in
+ * [attach] closes that gap: STATE_OFF/DOZE → `pauseAll`,
+ * STATE_ON → `applyForCurrentPage` (only when the activity is actually
+ * foreground; tracked via [onActivityResumed]/[onActivityPaused]).
+ *
  * @param pager the home ViewPager2
  * @param isSaverOn returns true when the system is in battery-saver
  *        mode; reads from [PowerSaveBridge].
@@ -30,6 +44,51 @@ class WidgetLifecycleController(
     private val pager: ViewPager2,
     private val isSaverOn: () -> Boolean,
 ) {
+
+    private var activityResumed = false
+
+    private val displayManager: DisplayManager? by lazy {
+        pager.context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
+    }
+
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {}
+        override fun onDisplayRemoved(displayId: Int) {}
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId != Display.DEFAULT_DISPLAY) return
+            val display = displayManager?.getDisplay(Display.DEFAULT_DISPLAY) ?: return
+            when (display.state) {
+                Display.STATE_OFF,
+                Display.STATE_DOZE,
+                Display.STATE_DOZE_SUSPEND -> pauseAll()
+                Display.STATE_ON,
+                Display.STATE_ON_SUSPEND -> {
+                    // STATE_ON fires whenever the user wakes the device into
+                    // ANY app, not just home. Only resume our widgets if
+                    // LauncherActivity is actually foreground — otherwise the
+                    // widgets stay paused until the user returns to home, at
+                    // which point `onResume` calls applyForCurrentPage again.
+                    if (activityResumed) applyForCurrentPage()
+                }
+            }
+        }
+    }
+
+    /** Start listening to display state. Call from [LauncherActivity.onCreate]. */
+    fun attach() {
+        displayManager?.registerDisplayListener(displayListener, null)
+    }
+
+    /** Stop listening. Call from [LauncherActivity.onDestroy]. */
+    fun detach() {
+        try { displayManager?.unregisterDisplayListener(displayListener) } catch (_: Throwable) {}
+    }
+
+    /** Mark the activity as foreground. Call from [LauncherActivity.onResume]. */
+    fun onActivityResumed() { activityResumed = true }
+
+    /** Mark the activity as background. Call from [LauncherActivity.onPause]. */
+    fun onActivityPaused() { activityResumed = false }
 
     /** Resume widgets on the currently-visible page; pause widgets on
      *  every other realized page. Called on page change AND on activity
