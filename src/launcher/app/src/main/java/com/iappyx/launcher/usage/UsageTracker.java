@@ -127,5 +127,21 @@ public class UsageTracker {
         onAudioStop();
         onHidden();
     }
+
+    /** Re-stamp every live start timestamp to {@code now()}. Pairs with
+     *  [UsageStore.resetWindow]: without this, any resource that was already
+     *  active when the user hit "Reset counters" would dump its full
+     *  pre-reset duration into the cleared store the next time it stops
+     *  — making the reset look ineffective. Active resources stay active;
+     *  only the accounting clock for them is moved forward. */
+    public void rebase() {
+        if (!alive()) return;
+        long t = now();
+        if (gpsStart      != 0L) gpsStart      = t;
+        if (trackingStart != 0L) trackingStart = t;
+        if (audioStart    != 0L) audioStart    = t;
+        if (visibleStart  != 0L) visibleStart  = t;
+        for (Map.Entry<Integer, Long> e : sensorStarts.entrySet()) e.setValue(t);
+    }
 }
 // USAGE: END

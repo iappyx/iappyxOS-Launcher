@@ -94,6 +94,13 @@ class WidgetUsageActivity : AppCompatActivity() {
                 .setMessage("Reset all widget battery counters?")
                 .setPositiveButton("Reset") { _, _ ->
                     UsageStore.resetWindow(this)
+                    // Re-stamp the live UsageTracker timestamps so any
+                    // resource that's currently active (sensor / GPS / audio /
+                    // visible) doesn't dump its pre-reset duration back into
+                    // the cleared store on next stop.
+                    for (host in com.iappyx.launcher.WidgetHost.hostsByWidgetId.values) {
+                        try { host.usage().rebase() } catch (_: Throwable) {}
+                    }
                     recreate()
                 }
                 .setNegativeButton("Cancel", null)
