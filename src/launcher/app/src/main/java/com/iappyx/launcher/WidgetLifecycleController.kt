@@ -3,7 +3,10 @@
  */
 package com.iappyx.launcher
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.hardware.display.DisplayManager
 import android.view.Display
 import android.view.ViewGroup
@@ -31,10 +34,19 @@ import com.iappyx.launcher.cells.GeneratedWidgetCell
  * no lock screen). Without an explicit display-state hook, widget
  * sensors stay registered for the entire screen-off window — measured
  * 17h of continuous rotation-vector sampling against 1h of screen-on
- * time on a real tablet. The [DisplayManager.DisplayListener] hooked in
- * [attach] closes that gap: STATE_OFF/DOZE → `pauseAll`,
- * STATE_ON → `applyForCurrentPage` (only when the activity is actually
- * foreground; tracked via [onActivityResumed]/[onActivityPaused]).
+ * time on a real tablet. Two complementary signals close the gap:
+ *
+ *  - [DisplayManager.DisplayListener] reacts to `Display.STATE_OFF/DOZE`.
+ *  - A [BroadcastReceiver] on `ACTION_SCREEN_OFF` / `ACTION_USER_PRESENT`
+ *    handles devices where AOD keeps `Display.STATE` at `ON` even when
+ *    the user can't see anything (Pixel 10's Always-On Display does this).
+ *    Without this receiver, `watchPosition` GPS subscriptions can survive
+ *    overnight on those devices — measured 17h continuous GPS / ~4%/hr
+ *    drain on Pixel 10. `ACTION_SCREEN_OFF` fires reliably on the
+ *    user-perceived screen-off event regardless of AOD.
+ *
+ * Resumes only happen when the activity is actually foreground; tracked
+ * via [onActivityResumed]/[onActivityPaused].
  *
  * @param pager the home ViewPager2
  * @param isSaverOn returns true when the system is in battery-saver
@@ -74,14 +86,42 @@ class WidgetLifecycleController(
         }
     }
 
+    /** Receiver for [Intent.ACTION_SCREEN_OFF] and [Intent.ACTION_USER_PRESENT].
+     *  Necessary because Pixel 10's AOD keeps `Display.STATE` at `ON`
+     *  during Daydream, so the [DisplayManager.DisplayListener] above never
+     *  fires a pause transition. `ACTION_SCREEN_OFF` is the reliable
+     *  user-perceived-screen-off signal across OEM AOD implementations. */
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> pauseAll()
+                Intent.ACTION_USER_PRESENT -> if (activityResumed) applyForCurrentPage()
+            }
+        }
+    }
+
+    private var screenReceiverRegistered = false
+
     /** Start listening to display state. Call from [LauncherActivity.onCreate]. */
     fun attach() {
         displayManager?.registerDisplayListener(displayListener, null)
+        if (!screenReceiverRegistered) {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_USER_PRESENT)
+            }
+            pager.context.applicationContext.registerReceiver(screenReceiver, filter)
+            screenReceiverRegistered = true
+        }
     }
 
     /** Stop listening. Call from [LauncherActivity.onDestroy]. */
     fun detach() {
         try { displayManager?.unregisterDisplayListener(displayListener) } catch (_: Throwable) {}
+        if (screenReceiverRegistered) {
+            try { pager.context.applicationContext.unregisterReceiver(screenReceiver) } catch (_: Throwable) {}
+            screenReceiverRegistered = false
+        }
     }
 
     /** Mark the activity as foreground. Call from [LauncherActivity.onResume]. */
