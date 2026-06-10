@@ -151,10 +151,25 @@ class WidgetLifecycleController(
      *  this from `onPause`; matched by [applyForCurrentPage] in
      *  `onResume` which selectively resumes only the current page. */
     fun pauseAll() {
-        val rv = pager.getChildAt(0) as? RecyclerView ?: return
-        for (i in 0 until rv.childCount) {
-            val pageRoot = rv.getChildAt(i) as? ViewGroup ?: continue
-            forEachGeneratedWidgetIn(pageRoot) { it.setLifecycleVisible(false) }
+        val rv = pager.getChildAt(0) as? RecyclerView
+        if (rv != null) {
+            for (i in 0 until rv.childCount) {
+                val pageRoot = rv.getChildAt(i) as? ViewGroup ?: continue
+                forEachGeneratedWidgetIn(pageRoot) { it.setLifecycleVisible(false) }
+            }
+        }
+        // Belt-and-braces second pass: walk every live WidgetHost in the
+        // global map and pause its bridges. The first pass above only
+        // reaches widgets whose cell is currently REALIZED by the pager
+        // (within ViewPager2's offscreen cache). A widget on a page that
+        // sits outside that cache still has a live host in
+        // [WidgetHost.hostsByWidgetId] and may be holding GPS / sensors —
+        // without this pass, those listeners survive every screen-off
+        // event until the host is destroyed. [WidgetHost.pauseBridges] is
+        // idempotent (guarded by `bridgesPaused`), so this is safe even
+        // for hosts whose cell already got the first pass.
+        for (host in com.iappyx.launcher.WidgetHost.hostsByWidgetId.values) {
+            try { host.pauseBridges() } catch (_: Throwable) {}
         }
     }
 

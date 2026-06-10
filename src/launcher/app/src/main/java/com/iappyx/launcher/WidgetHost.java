@@ -351,6 +351,28 @@ public class WidgetHost extends android.content.ContextWrapper {
         try { if (sensorManager != null) for (SensorEventListener l : activeSensors.values()) sensorManager.unregisterListener(l); } catch (Exception ignored) {}
         activeSensors.clear();
         usage.onDestroy();  // USAGE: flush any still-active timers
+        // GPS watchPosition + geofence listeners run in-process and capture
+        // this WidgetHost — once activityAlive is false, their callbacks
+        // bail out and the listener is dead weight. MUST be cleaned up here,
+        // not gated on full=true, otherwise a page-recycle destroy(false)
+        // leaves the OS-level LocationManager subscription alive forever,
+        // pinning GPS hardware on until process death. (Measured 17h
+        // continuous GPS subscription after Live GPS Map scrolled outside
+        // the pager's offscreenPageLimit on Pixel 10.)
+        if (activeLocationListener != null) {
+            try {
+                LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                if (lm != null) lm.removeUpdates(activeLocationListener);
+            } catch (Exception ignored) {}
+            activeLocationListener = null;
+        }
+        if (sharedGeofenceListener != null) {
+            try {
+                LocationManager geoLm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                if (geoLm != null) geoLm.removeUpdates(sharedGeofenceListener);
+            } catch (Exception ignored) {}
+            sharedGeofenceListener = null;
+        }
         // If this widget started the foreground LocationService and went
         // away without calling stopTracking (widget removed from home,
         // page rebuilt, host recycled), tear the service down so it doesn't
@@ -388,20 +410,8 @@ public class WidgetHost extends android.content.ContextWrapper {
         // only reclaimed-by-process-death otherwise, which is the H5-1 leak
         // when a networking widget is genuinely removed.
         try { if (wakeLock != null && wakeLock.isHeld()) wakeLock.release(); } catch (Exception ignored) {}
-        if (activeLocationListener != null) {
-            try {
-                LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                lm.removeUpdates(activeLocationListener);
-            } catch (Exception ignored) {}
-            activeLocationListener = null;
-        }
-        if (sharedGeofenceListener != null) {
-            try {
-                LocationManager geoLm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                if (geoLm != null) geoLm.removeUpdates(sharedGeofenceListener);
-            } catch (Exception ignored) {}
-            sharedGeofenceListener = null;
-        }
+        // activeLocationListener + sharedGeofenceListener cleanup moved
+        // up to the common path above — they leak under full=false otherwise.
         synchronized (btLock) {
             btRunning = false;
             try { if (btSocket != null) btSocket.close(); } catch (Exception ignored) {}
