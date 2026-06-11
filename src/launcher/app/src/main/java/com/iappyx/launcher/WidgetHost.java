@@ -586,6 +586,18 @@ public class WidgetHost extends android.content.ContextWrapper {
             }
             usage.onGpsStop();  // USAGE
         }
+        // Geofence GPS: the shared geofence listener (iappyx.location.addGeofence)
+        // holds a GPS_PROVIDER subscription just like watchPosition and is the
+        // same off-screen battery drain. Unregister it while paused but KEEP the
+        // listener instance + `fences` map so resumeBridges re-arms it with the
+        // same per-fence state. (An off-screen widget can't act on a transition
+        // anyway — its WebView is paused — so this loses no working behaviour.)
+        if (sharedGeofenceListener != null) {
+            LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            if (lm != null) {
+                try { lm.removeUpdates(sharedGeofenceListener); } catch (Exception ignored) {}
+            }
+        }
     }
 
     public void resumeBridges() {
@@ -615,6 +627,20 @@ public class WidgetHost extends android.content.ContextWrapper {
                     lm.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER, 2000, 1, activeLocationListener);
                     usage.onGpsStart();  // USAGE
+                } catch (Exception ignored) {}
+            }
+        }
+        // Re-arm the shared geofence listener with the same params
+        // startGeofenceListener() uses (10s / 5m). Mirrors the watchPosition
+        // re-arm above; skipped if the listener was torn down while paused
+        // (removeGeofence emptied the fences) or permission was revoked.
+        if (sharedGeofenceListener != null) {
+            LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            if (lm != null && ContextCompat.checkSelfPermission(WidgetHost.this,
+                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                try {
+                    lm.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER, 10000, 5, sharedGeofenceListener);
                 } catch (Exception ignored) {}
             }
         }
