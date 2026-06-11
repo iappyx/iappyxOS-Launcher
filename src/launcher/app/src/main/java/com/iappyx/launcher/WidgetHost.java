@@ -357,8 +357,8 @@ public class WidgetHost extends android.content.ContextWrapper {
         // not gated on full=true, otherwise a page-recycle destroy(false)
         // leaves the OS-level LocationManager subscription alive forever,
         // pinning GPS hardware on until process death. (Measured 17h
-        // continuous GPS subscription after Live GPS Map scrolled outside
-        // the pager's offscreenPageLimit on Pixel 10.)
+        // continuous GPS subscription after a watchPosition widget scrolled
+        // outside the pager's offscreenPageLimit.)
         if (activeLocationListener != null) {
             try {
                 LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);

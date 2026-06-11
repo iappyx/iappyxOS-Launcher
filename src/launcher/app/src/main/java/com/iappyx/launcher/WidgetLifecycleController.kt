@@ -39,11 +39,11 @@ import com.iappyx.launcher.cells.GeneratedWidgetCell
  *  - [DisplayManager.DisplayListener] reacts to `Display.STATE_OFF/DOZE`.
  *  - A [BroadcastReceiver] on `ACTION_SCREEN_OFF` / `ACTION_USER_PRESENT`
  *    handles devices where AOD keeps `Display.STATE` at `ON` even when
- *    the user can't see anything (Pixel 10's Always-On Display does this).
+ *    the user can't see anything (typical Always-On Display behaviour).
  *    Without this receiver, `watchPosition` GPS subscriptions can survive
  *    overnight on those devices — measured 17h continuous GPS / ~4%/hr
- *    drain on Pixel 10. `ACTION_SCREEN_OFF` fires reliably on the
- *    user-perceived screen-off event regardless of AOD.
+ *    drain on an AOD-enabled device. `ACTION_SCREEN_OFF` fires reliably
+ *    on the user-perceived screen-off event regardless of AOD.
  *
  * Resumes only happen when the activity is actually foreground; tracked
  * via [onActivityResumed]/[onActivityPaused].
@@ -87,10 +87,10 @@ class WidgetLifecycleController(
     }
 
     /** Receiver for [Intent.ACTION_SCREEN_OFF] and [Intent.ACTION_USER_PRESENT].
-     *  Necessary because Pixel 10's AOD keeps `Display.STATE` at `ON`
-     *  during Daydream, so the [DisplayManager.DisplayListener] above never
-     *  fires a pause transition. `ACTION_SCREEN_OFF` is the reliable
-     *  user-perceived-screen-off signal across OEM AOD implementations. */
+     *  Necessary because some OEM AOD implementations keep `Display.STATE`
+     *  at `ON` during Daydream, so the [DisplayManager.DisplayListener]
+     *  above never fires a pause transition. `ACTION_SCREEN_OFF` is the
+     *  reliable user-perceived-screen-off signal across OEM AOD modes. */
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
